@@ -26,7 +26,16 @@ export function PetCard({ pet, onEdit, onDelete, currentUserName, isAdmin }: Pet
 
   return (
     <div className="group relative rounded-lg border bg-card p-5 shadow-card hover:shadow-elevated transition-all duration-200 animate-fade-in">
+      {pet.imageUrl && (
+        <img
+          src={pet.imageUrl}
+          alt={pet.name}
+          loading="lazy"
+          className="mb-4 h-40 w-full rounded-md object-cover"
+        />
+      )}
       <div className="flex items-start justify-between gap-3">
+
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Icon className="h-5 w-5" />
