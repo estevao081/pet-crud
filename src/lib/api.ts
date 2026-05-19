@@ -17,6 +17,7 @@ export interface Pet {
   age: string;
   weight: string;
   race: string;
+  imageUrl?: string;
   owner?: PetOwner;
 }
 
@@ -29,7 +30,9 @@ export interface PetFormData {
   age: string;
   weight: string;
   race: string;
+  image?: File | null;
 }
+
 
 export interface PageData<T> {
   content: T[];
@@ -53,9 +56,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<ApiR
   const headers = new Headers({ ...authHeaders, ...Object.fromEntries(new Headers(options.headers).entries()) });
   const hasBody = options.body !== undefined && options.body !== null;
 
-  if (hasBody && !headers.has("Content-Type")) {
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  if (hasBody && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
+
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -75,15 +80,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<ApiR
 }
 
 function toPayload(data: PetFormData) {
-  return { ...data };
+  const { image, ...rest } = data;
+  return rest;
 }
 
 export const petApi = {
   findAll: (page = 0, items = 9) =>
     request<PageData<Pet>>(`/pets?page=${page}&items=${items}`),
 
-  save: (data: PetFormData) =>
-    request<null>("/pets", { method: "POST", body: JSON.stringify(toPayload(data)) }),
+  save: (data: PetFormData) => {
+    const form = new FormData();
+    const { image, ...rest } = data;
+    Object.entries(rest).forEach(([k, v]) => form.append(k, v ?? ""));
+    if (image) form.append("image", image);
+    return request<null>("/pets", { method: "POST", body: form });
+  },
 
   update: (id: string, data: PetFormData) =>
     request<Pet>(`/pets/${id}`, { method: "PUT", body: JSON.stringify(toPayload(data)) }),
@@ -97,3 +108,4 @@ export const petApi = {
       body: JSON.stringify(filter),
     }),
 };
+

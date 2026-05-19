@@ -35,11 +35,19 @@ export function PetForm({ initialData, onSubmit, isPending, submitLabel = "Salva
     age: initialData?.age || "",
     weight: initialData?.weight || "",
     race: initialData?.race || "",
+    image: null,
   });
+  const [preview, setPreview] = useState<string | null>(null);
 
   const handleChange = (field: keyof PetFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
+
+  const handleImageChange = (file: File | null) => {
+    setForm((prev) => ({ ...prev, image: file }));
+    setPreview(file ? URL.createObjectURL(file) : null);
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,6 +165,28 @@ export function PetForm({ initialData, onSubmit, isPending, submitLabel = "Salva
           </div>
         </div>
       </div>
+
+      {!isEdit && (
+        <div className="space-y-2">
+          <Label htmlFor="image">Foto do pet</Label>
+          <Input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleImageChange(e.target.files?.[0] ?? null)}
+            required
+          />
+          {preview && (
+            <img
+              src={preview}
+              alt="Pré-visualização"
+              className="mt-2 h-32 w-32 rounded-md object-cover border"
+            />
+          )}
+        </div>
+      )}
+
+
 
       <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
         {isPending ? "Salvando..." : submitLabel}
