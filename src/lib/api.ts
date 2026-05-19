@@ -68,10 +68,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<ApiR
   });
 
   if (res.status === 401 || res.status === 403) {
-    const { clearAuth } = await import("./auth");
-    clearAuth();
-    window.location.href = "/login";
-    throw new Error("Sessão expirada");
+    const { getStoredAuth, isTokenExpired, clearAuth } = await import("./auth");
+    const stored = getStoredAuth();
+    // Só desloga se o token realmente expirou; caso contrário propaga o erro da API
+    if (!stored || isTokenExpired(stored.token)) {
+      clearAuth();
+      window.location.href = "/login";
+      throw new Error("Sessão expirada");
+    }
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message || (res.status === 403 ? "Acesso negado" : "Não autorizado"));
   }
 
   const json = await res.json();
