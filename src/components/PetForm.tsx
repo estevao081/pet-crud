@@ -35,11 +35,19 @@ export function PetForm({ initialData, onSubmit, isPending, submitLabel = "Salva
     age: initialData?.age || "",
     weight: initialData?.weight || "",
     race: initialData?.race || "",
+    image: null,
   });
+  const [preview, setPreview] = useState<string | null>(null);
 
   const handleChange = (field: keyof PetFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
+
+  const handleImageChange = (file: File | null) => {
+    setForm((prev) => ({ ...prev, image: file }));
+    setPreview(file ? URL.createObjectURL(file) : null);
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
