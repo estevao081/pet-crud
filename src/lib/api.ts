@@ -17,6 +17,7 @@ export interface Pet {
   age: string;
   weight: string;
   race: string;
+  imageUrl?: string;
   owner?: PetOwner;
 }
 
@@ -29,7 +30,9 @@ export interface PetFormData {
   age: string;
   weight: string;
   race: string;
+  image?: File | null;
 }
+
 
 export interface PageData<T> {
   content: T[];
