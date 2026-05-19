@@ -78,15 +78,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<ApiR
 }
 
 function toPayload(data: PetFormData) {
-  return { ...data };
+  const { image, ...rest } = data;
+  return rest;
 }
 
 export const petApi = {
   findAll: (page = 0, items = 9) =>
     request<PageData<Pet>>(`/pets?page=${page}&items=${items}`),
 
-  save: (data: PetFormData) =>
-    request<null>("/pets", { method: "POST", body: JSON.stringify(toPayload(data)) }),
+  save: (data: PetFormData) => {
+    const form = new FormData();
+    const { image, ...rest } = data;
+    Object.entries(rest).forEach(([k, v]) => form.append(k, v ?? ""));
+    if (image) form.append("image", image);
+    return request<null>("/pets", { method: "POST", body: form });
+  },
 
   update: (id: string, data: PetFormData) =>
     request<Pet>(`/pets/${id}`, { method: "PUT", body: JSON.stringify(toPayload(data)) }),
@@ -100,3 +106,4 @@ export const petApi = {
       body: JSON.stringify(filter),
     }),
 };
+
