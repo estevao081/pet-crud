@@ -56,9 +56,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<ApiR
   const headers = new Headers({ ...authHeaders, ...Object.fromEntries(new Headers(options.headers).entries()) });
   const hasBody = options.body !== undefined && options.body !== null;
 
-  if (hasBody && !headers.has("Content-Type")) {
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  if (hasBody && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
+
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
