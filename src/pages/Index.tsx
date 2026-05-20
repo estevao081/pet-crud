@@ -7,7 +7,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { PetDialog } from "@/components/PetDialog";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { Button } from "@/components/ui/button";
-import { PawPrint, Plus, Loader2, LogIn, LogOut, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
+import { PawPrint, Plus, Loader2, LogIn, LogOut, UserPlus, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -106,6 +106,13 @@ export default function Index() {
                 <Button size="sm" onClick={handleNewPet} className="sm:size-default">
                   <Plus className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Novo Pet</span>
                 </Button>
+                {user?.role === "ROLE_ADMIN" && (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/admin">
+                      <ShieldCheck className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Admin</span>
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="outline" size="icon" onClick={logout} title="Sair" className="h-9 w-9 sm:h-10 sm:w-10">
                   <LogOut className="h-4 w-4" />
                 </Button>

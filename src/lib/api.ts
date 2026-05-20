@@ -21,6 +21,14 @@ export interface Pet {
   owner?: PetOwner;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  number: string;
+  email: string;
+  role: "ROLE_USER" | "ROLE_ADMIN";
+}
+
 export interface PetFormData {
   name: string;
   type: string;
@@ -118,5 +126,9 @@ export const petApi = {
       method: "POST",
       body: JSON.stringify(filter),
     }),
+};
+
+export const userApi = {
+  findAll: () => request<User[]>("/users/admin"),
 };
 
