@@ -31,7 +31,7 @@ export function PetCard({ pet, onEdit, onDelete, currentUserName, isAdmin }: Pet
           src={pet.imageUrl}
           alt={pet.name}
           loading="lazy"
-          className="mb-4 h-40 w-full rounded-md object-cover"
+          className="mb-4 aspect-[3/4] w-full rounded-md object-cover"
         />
       )}
       <div className="flex items-start justify-between gap-3">
