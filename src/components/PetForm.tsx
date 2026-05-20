@@ -166,25 +166,25 @@ export function PetForm({ initialData, onSubmit, isPending, submitLabel = "Salva
         </div>
       </div>
 
-      {!isEdit && (
-        <div className="space-y-2">
-          <Label htmlFor="image">Foto do pet</Label>
-          <Input
-            id="image"
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleImageChange(e.target.files?.[0] ?? null)}
-            required
+      <div className="space-y-2">
+        <Label htmlFor="image">
+          {isEdit ? "Trocar foto do pet (opcional)" : "Foto do pet"}
+        </Label>
+        <Input
+          id="image"
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleImageChange(e.target.files?.[0] ?? null)}
+          required={!isEdit}
+        />
+        {preview && (
+          <img
+            src={preview}
+            alt="Pré-visualização"
+            className="mt-2 h-32 w-32 rounded-md object-cover border"
           />
-          {preview && (
-            <img
-              src={preview}
-              alt="Pré-visualização"
-              className="mt-2 h-32 w-32 rounded-md object-cover border"
-            />
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
 
 
