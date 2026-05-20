@@ -102,8 +102,13 @@ export const petApi = {
     return request<null>("/pets", { method: "POST", body: form });
   },
 
-  update: (id: string, data: PetFormData) =>
-    request<Pet>(`/pets/${id}`, { method: "PUT", body: JSON.stringify(toPayload(data)) }),
+  update: (id: string, data: PetFormData) => {
+    const form = new FormData();
+    const { image, ...rest } = data;
+    Object.entries(rest).forEach(([k, v]) => form.append(k, v ?? ""));
+    if (image) form.append("image", image);
+    return request<Pet>(`/pets/${id}`, { method: "PUT", body: form });
+  },
 
   delete: (id: string) =>
     request<null>(`/pets/${id}`, { method: "DELETE" }),
