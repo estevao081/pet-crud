@@ -188,7 +188,7 @@ export default function Admin() {
                             size="sm"
                             variant="destructive"
                             onClick={() => setDeleting(u)}
-                            disabled={u.id === user?.id}
+                            disabled={u.name === user?.name}
                           >
                             <Trash2 className="h-4 w-4 mr-1.5" /> Excluir
                           </Button>
