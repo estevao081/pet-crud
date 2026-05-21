@@ -132,7 +132,21 @@ export const petApi = {
     }),
 };
 
+export interface UserUpdateData {
+  name: string;
+  number: string;
+  email: string;
+  password: string;
+}
+
 export const userApi = {
   findAll: () => request<User[]>("/users/admin"),
+  update: (id: string, data: UserUpdateData) =>
+    request<User>(`/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: string) =>
+    request<null>(`/users/${id}`, { method: "DELETE" }),
 };
 
