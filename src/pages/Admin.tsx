@@ -1,10 +1,11 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, Link } from "react-router-dom";
-import { userApi } from "@/lib/api";
+import { User, UserUpdateData, userApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -13,7 +14,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { UserEditDialog } from "@/components/UserEditDialog";
+import { ArrowLeft, Loader2, Pencil, Search, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 function formatPhone(raw: string): string {
@@ -24,6 +36,11 @@ function formatPhone(raw: string): string {
 export default function Admin() {
   const { user, isAuthenticated } = useAuth();
   const isAdmin = user?.role === "ROLE_ADMIN";
+  const qc = useQueryClient();
+
+  const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState<User | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["users", "admin"],
@@ -31,14 +48,49 @@ export default function Admin() {
     enabled: isAuthenticated && isAdmin,
   });
 
+  const updateMut = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UserUpdateData }) =>
+      userApi.update(id, data),
+    onSuccess: () => {
+      toast.success("Usuário atualizado");
+      qc.invalidateQueries({ queryKey: ["users", "admin"] });
+      setEditing(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => userApi.delete(id),
+    onSuccess: () => {
+      toast.success("Usuário removido");
+      qc.invalidateQueries({ queryKey: ["users", "admin"] });
+      setDeleting(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   useEffect(() => {
     if (error) toast.error((error as Error).message);
   }, [error]);
 
+  const users = data?.data ?? [];
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return users;
+    const digits = q.replace(/\D/g, "");
+    return users.filter((u) => {
+      const phone = (u.number ?? "").replace(/\D/g, "");
+      return (
+        u.name?.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q) ||
+        (digits && phone.includes(digits))
+      );
+    });
+  }, [users, query]);
+
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
-
-  const users = data?.data ?? [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,8 +116,19 @@ export default function Admin() {
         <div className="space-y-1">
           <h2 className="font-display text-2xl sm:text-3xl font-bold">Usuários cadastrados</h2>
           <p className="text-muted-foreground text-sm">
-            Total: <strong className="text-foreground">{users.length}</strong>
+            Total: <strong className="text-foreground">{filtered.length}</strong>
+            {query && <> de {users.length}</>}
           </p>
+        </div>
+
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, email ou telefone"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
         {isLoading ? (
@@ -81,18 +144,18 @@ export default function Admin() {
                   <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Papel</TableHead>
-                  <TableHead className="hidden md:table-cell">ID</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.length === 0 ? (
+                {filtered.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
                       Nenhum usuário encontrado.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((u) => (
+                  filtered.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">{u.name}</TableCell>
                       <TableCell>{u.email}</TableCell>
@@ -102,8 +165,23 @@ export default function Admin() {
                           {u.role === "ROLE_ADMIN" ? "Admin" : "Usuário"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                        {u.id}
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditing(u)}
+                          >
+                            <Pencil className="h-4 w-4 mr-1" /> Editar
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setDeleting(u)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -113,6 +191,36 @@ export default function Admin() {
           </div>
         )}
       </main>
+
+      <UserEditDialog
+        open={!!editing}
+        onOpenChange={(o) => !o && setEditing(null)}
+        user={editing}
+        isPending={updateMut.isPending}
+        onSubmit={(data) => editing && updateMut.mutate({ id: editing.id, data })}
+      />
+
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <strong>{deleting?.name}</strong>?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMut.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleting && deleteMut.mutate(deleting.id)}
+              disabled={deleteMut.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMut.isPending ? "Removendo..." : "Sim, remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
