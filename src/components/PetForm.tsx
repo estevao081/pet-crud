@@ -143,16 +143,13 @@ export function PetForm({ initialData, onSubmit, isPending, submitLabel = "Salva
           </div>
           <div className="space-y-2">
             <Label htmlFor="state">Estado</Label>
-            <Select value={form.state} onValueChange={(v) => handleChange("state", v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {BRAZILIAN_STATES.map((uf) => (
-                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ResponsiveSelect
+              id="state"
+              value={form.state}
+              onValueChange={(v) => handleChange("state", v)}
+              placeholder="Selecione o estado"
+              options={BRAZILIAN_STATES.map((uf) => ({ value: uf, label: uf }))}
+            />
           </div>
         </div>
       </div>
