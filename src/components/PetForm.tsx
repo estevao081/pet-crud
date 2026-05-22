@@ -3,14 +3,7 @@ import { PetFormData } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Dog, Cat } from "lucide-react";
+import { ResponsiveSelect } from "@/components/ui/responsive-select";
 
 const BRAZILIAN_STATES = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
