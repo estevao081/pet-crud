@@ -3,14 +3,7 @@ import { PetFormData } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Dog, Cat } from "lucide-react";
+import { ResponsiveSelect } from "@/components/ui/responsive-select";
 
 const BRAZILIAN_STATES = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
@@ -71,34 +64,32 @@ export function PetForm({ initialData, onSubmit, isPending, submitLabel = "Salva
         {!isEdit && (
           <div className="space-y-2">
             <Label htmlFor="type">Tipo</Label>
-            <Select value={form.type} onValueChange={(v) => handleChange("type", v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CÃO">
-                  <span className="flex items-center gap-2"><Dog className="w-4 h-4" /> Cão</span>
-                </SelectItem>
-                <SelectItem value="GATO">
-                  <span className="flex items-center gap-2"><Cat className="w-4 h-4" /> Gato</span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <ResponsiveSelect
+              id="type"
+              value={form.type}
+              onValueChange={(v) => handleChange("type", v)}
+              placeholder="Selecione o tipo"
+              options={[
+                { value: "CÃO", label: "Cão" },
+                { value: "GATO", label: "Gato" },
+              ]}
+            />
           </div>
         )}
 
         {!isEdit && (
           <div className="space-y-2">
             <Label htmlFor="gender">Sexo</Label>
-            <Select value={form.gender} onValueChange={(v) => handleChange("gender", v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o sexo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="M">Macho</SelectItem>
-                <SelectItem value="F">Fêmea</SelectItem>
-              </SelectContent>
-            </Select>
+            <ResponsiveSelect
+              id="gender"
+              value={form.gender}
+              onValueChange={(v) => handleChange("gender", v)}
+              placeholder="Selecione o sexo"
+              options={[
+                { value: "M", label: "Macho" },
+                { value: "F", label: "Fêmea" },
+              ]}
+            />
           </div>
         )}
 
@@ -152,16 +143,13 @@ export function PetForm({ initialData, onSubmit, isPending, submitLabel = "Salva
           </div>
           <div className="space-y-2">
             <Label htmlFor="state">Estado</Label>
-            <Select value={form.state} onValueChange={(v) => handleChange("state", v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {BRAZILIAN_STATES.map((uf) => (
-                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ResponsiveSelect
+              id="state"
+              value={form.state}
+              onValueChange={(v) => handleChange("state", v)}
+              placeholder="Selecione o estado"
+              options={BRAZILIAN_STATES.map((uf) => ({ value: uf, label: uf }))}
+            />
           </div>
         </div>
       </div>
