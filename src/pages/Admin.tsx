@@ -38,7 +38,10 @@ export default function Admin() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
 
-  const users = data?.data ?? [];
+  const users = [...(data?.data ?? [])].sort((a, b) => {
+    if (a.role === b.role) return a.name.localeCompare(b.name);
+    return a.role === "ROLE_ADMIN" ? -1 : 1;
+  });
 
   return (
     <div className="min-h-screen bg-background">
