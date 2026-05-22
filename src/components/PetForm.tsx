@@ -64,19 +64,16 @@ export function PetForm({ initialData, onSubmit, isPending, submitLabel = "Salva
         {!isEdit && (
           <div className="space-y-2">
             <Label htmlFor="type">Tipo</Label>
-            <Select value={form.type} onValueChange={(v) => handleChange("type", v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CÃO">
-                  <span className="flex items-center gap-2"><Dog className="w-4 h-4" /> Cão</span>
-                </SelectItem>
-                <SelectItem value="GATO">
-                  <span className="flex items-center gap-2"><Cat className="w-4 h-4" /> Gato</span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <ResponsiveSelect
+              id="type"
+              value={form.type}
+              onValueChange={(v) => handleChange("type", v)}
+              placeholder="Selecione o tipo"
+              options={[
+                { value: "CÃO", label: "Cão" },
+                { value: "GATO", label: "Gato" },
+              ]}
+            />
           </div>
         )}
 
