@@ -73,18 +73,20 @@ export function PetCard({ pet, onEdit, onDelete, currentUserName, isAdmin }: Pet
         <div className="flex items-center gap-1.5 col-span-2">
           <MapPin className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">
-            {pet.city || pet.state
-              ? `${pet.city}${pet.state ? ` - ${pet.state}` : ""}`
-              : "não informado"}
+            {(() => {
+              const city = pet.city && pet.city !== "não informado" ? pet.city : "";
+              const state = pet.state && pet.state !== "não informado" ? pet.state : "";
+              if (!city && !state) return "não informado";
+              if (city && state) return `${city} - ${state}`;
+              return city || state;
+            })()}
           </span>
         </div>
       </div>
 
-      {pet.race && pet.race !== "não informado" && (
-        <p className="mt-3 text-xs text-muted-foreground">
-          Raça: <span className="font-medium text-foreground">{pet.race}</span>
-        </p>
-      )}
+      <p className="mt-3 text-xs text-muted-foreground">
+        Raça: <span className="font-medium text-foreground">{pet.race && pet.race.trim() ? pet.race : "não informado"}</span>
+      </p>
 
       {pet.owner && (
         <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground border-t pt-3">
