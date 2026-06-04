@@ -1,7 +1,7 @@
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigate, Link } from "react-router-dom";
-import { userApi } from "@/lib/api";
+import { User, userApi } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +13,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, Loader2, Pencil, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { UserEditDialog } from "@/components/UserEditDialog";
 
 function formatPhone(raw: string): string {
   const digits = (raw ?? "").replace(/\D/g, "").padEnd(11, "0");
@@ -24,11 +35,25 @@ function formatPhone(raw: string): string {
 export default function Admin() {
   const { user, isAuthenticated } = useAuth();
   const isAdmin = user?.role === "ROLE_ADMIN";
+  const qc = useQueryClient();
+
+  const [editing, setEditing] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState<User | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["users", "admin"],
     queryFn: () => userApi.findAll(),
     enabled: isAuthenticated && isAdmin,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => userApi.delete(id),
+    onSuccess: () => {
+      toast.success("Usuário removido");
+      qc.invalidateQueries({ queryKey: ["users", "admin"] });
+      setDeleting(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   useEffect(() => {
@@ -85,12 +110,13 @@ export default function Admin() {
                   <TableHead>Telefone</TableHead>
                   <TableHead>Papel</TableHead>
                   <TableHead className="hidden md:table-cell">ID</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
                       Nenhum usuário encontrado.
                     </TableCell>
                   </TableRow>
@@ -108,6 +134,27 @@ export default function Admin() {
                       <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
                         {u.id}
                       </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditing(u)}
+                            aria-label="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleting(u)}
+                            aria-label="Remover"
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -116,6 +163,34 @@ export default function Admin() {
           </div>
         )}
       </main>
+
+      <UserEditDialog
+        open={!!editing}
+        onOpenChange={(o) => !o && setEditing(null)}
+        user={editing}
+      />
+
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display">Remover usuário</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <strong>{deleting?.name}</strong>? Esta ação
+              não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleting && deleteMutation.mutate(deleting.id)}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? "Removendo..." : "Sim, remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
