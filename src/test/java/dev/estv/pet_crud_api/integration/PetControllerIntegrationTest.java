@@ -1,8 +1,8 @@
 package dev.estv.pet_crud_api.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.estv.pet_crud_api.model.PetModel;
-import dev.estv.pet_crud_api.model.UserModel;
+import dev.estv.pet_crud_api.entity.PetEntity;
+import dev.estv.pet_crud_api.entity.UserEntity;
 import dev.estv.pet_crud_api.repository.PetRepository;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import dev.estv.pet_crud_api.security.TokenService;
@@ -59,17 +59,17 @@ class PetControllerIntegrationTest {
     @MockitoBean
     private dev.estv.pet_crud_api.util.ReturnImageURL returnImageURL;
 
-    private UserModel testUser;
+    private UserEntity testUser;
     private String authToken;
 
     @BeforeEach
     void setUp() {
-        testUser = new UserModel();
+        testUser = new UserEntity();
         testUser.setName("João Silva");
         testUser.setEmail("joao@email.com");
         testUser.setPassword(passwordEncoder.encode("senha1234"));
         testUser.setNumber("81912345678");
-        testUser.setRole(UserModel.Role.ROLE_USER);
+        testUser.setRole(UserEntity.Role.ROLE_USER);
         testUser.setPets(new ArrayList<>());
         userRepository.save(testUser);
 
@@ -84,11 +84,11 @@ class PetControllerIntegrationTest {
         userRepository.deleteAll();
     }
 
-    private PetModel createPetInDb(String name) {
-        PetModel pet = PetModel.builder()
+    private PetEntity createPetInDb(String name) {
+        PetEntity pet = PetEntity.builder()
                 .name(name)
-                .type(PetModel.Type.CAO)
-                .gender(PetModel.Gender.M)
+                .type(PetEntity.Type.CAO)
+                .gender(PetEntity.Gender.M)
                 .city("recife")
                 .state("PE")
                 .age("5")
@@ -217,7 +217,7 @@ class PetControllerIntegrationTest {
         @Test
         @DisplayName("Deve deletar pet existente e retornar 200")
         void shouldDeleteExistingPet() throws Exception {
-            PetModel pet = createPetInDb("rex caramelo");
+            PetEntity pet = createPetInDb("rex caramelo");
 
             mockMvc.perform(delete("/pets/" + pet.getId())
                             .header("Authorization", "Bearer " + authToken))
@@ -241,7 +241,7 @@ class PetControllerIntegrationTest {
         @Test
         @DisplayName("Deve retornar 403 ao deletar sem autenticação")
         void shouldReturn403WhenDeleteWithoutAuth() throws Exception {
-            PetModel pet = createPetInDb("rex caramelo");
+            PetEntity pet = createPetInDb("rex caramelo");
 
             mockMvc.perform(delete("/pets/" + pet.getId()))
                     .andExpect(status().isForbidden());

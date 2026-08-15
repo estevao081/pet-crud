@@ -1,9 +1,8 @@
 package dev.estv.pet_crud_api.controller;
 
-import dev.estv.pet_crud_api.dto.request.PetRecordDTO;
-import dev.estv.pet_crud_api.dto.response.ApiResponse;
-import dev.estv.pet_crud_api.dto.response.PetResponseDTO;
-import dev.estv.pet_crud_api.model.PetModel;
+import dev.estv.pet_crud_api.dto.ApiResponse;
+import dev.estv.pet_crud_api.dto.PetDTOs;
+import dev.estv.pet_crud_api.entity.PetEntity;
 import dev.estv.pet_crud_api.service.PetService;
 import dev.estv.pet_crud_api.util.ReturnImageURL;
 import jakarta.validation.Valid;
@@ -29,7 +28,7 @@ public class PetController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Void>> save(@ModelAttribute @Valid PetRecordDTO dto,
+    public ResponseEntity<ApiResponse<Void>> save(@ModelAttribute @Valid PetDTOs.PetRecord dto,
                                                   @RequestParam("image") MultipartFile image) {
         String imageUrl = returnImageURL.imageUrl(image);
         petService.save(dto, imageUrl);
@@ -38,10 +37,10 @@ public class PetController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<PetResponseDTO>>> findAll(@RequestParam int page,
+    public ResponseEntity<ApiResponse<Page<PetDTOs.PetResponse>>> findAll(@RequestParam int page,
                                                                      @RequestParam int items) {
-        Page<PetResponseDTO> pets = petService.listPets(page, items);
-        return ResponseEntity.ok(new ApiResponse<>(true, pets, "Pet list"));
+        Page<PetDTOs.PetResponse> pets = petService.listPets(page, items);
+        return ResponseEntity.status(200).body(new ApiResponse<>(true, pets, "Pet list"));
     }
 
     @DeleteMapping("/{id}")
@@ -51,30 +50,30 @@ public class PetController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ApiResponse<>(false, null, "Pet not found"));
         }
-        return ResponseEntity.ok(
+        return ResponseEntity.status(204).body(
                 new ApiResponse<>(true, null, "Pet removed successfully")
         );
     }
 
     @PostMapping("/search")
-    public ResponseEntity<ApiResponse<Page<PetResponseDTO>>> search(@RequestBody PetResponseDTO filter,
+    public ResponseEntity<ApiResponse<Page<PetDTOs.PetResponse>>> search(@RequestBody PetDTOs.PetResponse filter,
                                                                     @RequestParam int page,
                                                                     @RequestParam int items) {
-        Page<PetResponseDTO> pets = petService.search(filter, page, items);
-        return ResponseEntity.ok(new ApiResponse<>(true, pets, "Search result"));
+        Page<PetDTOs.PetResponse> pets = petService.search(filter, page, items);
+        return ResponseEntity.status(200).body(new ApiResponse<>(true, pets, "Search result"));
     }
 
-    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<PetModel>> update(
+    @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<PetEntity>> update(
             @PathVariable UUID id,
-            @ModelAttribute @Valid PetRecordDTO dto,
+            @ModelAttribute @Valid PetDTOs.PetRecord dto,
             @RequestParam(value = "image", required = false) MultipartFile image) {
         if (petService.findById(id) == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            return ResponseEntity.status(404)
                     .body(new ApiResponse<>(false, null, "Pet not found"));
         }
         String imageUrl = (image != null && !image.isEmpty()) ? returnImageURL.imageUrl(image) : null;
-        PetModel updatedPet = petService.update(id, dto, imageUrl);
-        return ResponseEntity.ok(new ApiResponse<>(true, updatedPet, "Pet updated successfully"));
+        PetEntity updatedPet = petService.update(id, dto, imageUrl);
+        return ResponseEntity.status(200).body(new ApiResponse<>(true, updatedPet, "Pet updated successfully"));
     }
 }

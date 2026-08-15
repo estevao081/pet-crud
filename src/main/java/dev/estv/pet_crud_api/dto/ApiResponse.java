@@ -1,4 +1,4 @@
-package dev.estv.pet_crud_api.dto.response;
+package dev.estv.pet_crud_api.dto;
 
 import lombok.Getter;
 

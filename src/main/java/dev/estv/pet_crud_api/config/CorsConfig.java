@@ -14,7 +14,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOriginPatterns("https://adotapetportal.netlify.app")
+                        .allowedOriginPatterns("http://localhost:8080")
                         .allowedMethods("POST", "PUT", "GET", "OPTIONS", "DELETE")
                         .allowedHeaders("*")
                         .allowCredentials(true);

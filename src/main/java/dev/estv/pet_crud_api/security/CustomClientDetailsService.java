@@ -1,6 +1,6 @@
 package dev.estv.pet_crud_api.security;
 
-import dev.estv.pet_crud_api.model.UserModel;
+import dev.estv.pet_crud_api.entity.UserEntity;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -22,7 +22,7 @@ public class CustomClientDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserModel user = this.userRepository.findByUsermail(email)
+        UserEntity user = this.userRepository.findByUsermail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
         return new User(

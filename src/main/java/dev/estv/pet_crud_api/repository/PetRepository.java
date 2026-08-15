@@ -1,6 +1,6 @@
 package dev.estv.pet_crud_api.repository;
 
-import dev.estv.pet_crud_api.model.PetModel;
+import dev.estv.pet_crud_api.entity.PetEntity;
 
 import java.util.UUID;
 
@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PetRepository extends
-        JpaRepository<PetModel, UUID>,
-        JpaSpecificationExecutor<PetModel> {
+        JpaRepository<PetEntity, UUID>,
+        JpaSpecificationExecutor<PetEntity> {
 }

@@ -1,27 +1,34 @@
 package dev.estv.pet_crud_api.util;
 
-import dev.estv.pet_crud_api.dto.request.PetRecordDTO;
-import dev.estv.pet_crud_api.dto.response.UserResponseDTO;
+import dev.estv.pet_crud_api.dto.PetDTOs;
+import dev.estv.pet_crud_api.dto.UserDTOs;
+import dev.estv.pet_crud_api.entity.PetEntity;
+import dev.estv.pet_crud_api.entity.UserEntity;
 import dev.estv.pet_crud_api.exception.exceptions.*;
-import dev.estv.pet_crud_api.model.PetModel;
-import dev.estv.pet_crud_api.model.UserModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 
 @DisplayName("Util - Testes Unitários")
-class UtilTest {
+class ValidationUtilTest {
 
-    private Util util;
+    private ValidationUtil validationUtil;
+
+    @Mock
+    private UserMapper userMapper;
+
+    @Mock
+    private PetMapper petMapper;
 
     @BeforeEach
     void setUp() {
-        util = new Util();
+        validationUtil = new ValidationUtil();
     }
 
     @Nested
@@ -31,19 +38,19 @@ class UtilTest {
         @Test
         @DisplayName("Deve retornar 'não informado' quando valor é null")
         void shouldReturnNaoInformadoForNull() {
-            assertThat(util.normalizeField(null)).isEqualTo("não informado");
+            assertThat(validationUtil.normalizeField(null)).isEqualTo("não informado");
         }
 
         @Test
         @DisplayName("Deve retornar 'não informado' quando valor é blank")
         void shouldReturnNaoInformadoForBlank() {
-            assertThat(util.normalizeField("   ")).isEqualTo("não informado");
+            assertThat(validationUtil.normalizeField("   ")).isEqualTo("não informado");
         }
 
         @Test
         @DisplayName("Deve retornar valor em lowercase quando preenchido")
         void shouldReturnLowercaseValue() {
-            assertThat(util.normalizeField("VIRA-LATA")).isEqualTo("vira-lata");
+            assertThat(validationUtil.normalizeField("VIRA-LATA")).isEqualTo("vira-lata");
         }
     }
 
@@ -51,11 +58,11 @@ class UtilTest {
     @DisplayName("validatePet()")
     class ValidatePet {
 
-        private PetModel buildValidPet() {
-            return PetModel.builder()
+        private PetEntity buildValidPet() {
+            return PetEntity.builder()
                     .name("rex caramelo")
-                    .type(PetModel.Type.CAO)
-                    .gender(PetModel.Gender.M)
+                    .type(PetEntity.Type.CAO)
+                    .gender(PetEntity.Gender.M)
                     .city("recife")
                     .state("PE")
                     .age("5")
@@ -67,87 +74,87 @@ class UtilTest {
         @Test
         @DisplayName("Deve validar pet com dados corretos sem lançar exceção")
         void shouldPassForValidPet() {
-            assertThatCode(() -> util.validatePet(buildValidPet()))
+            assertThatCode(() -> validationUtil.validatePet(buildValidPet()))
                     .doesNotThrowAnyException();
         }
 
         @Test
         @DisplayName("Deve lançar InvalidNameException para nome sem sobrenome")
         void shouldThrowForNameWithoutLastName() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setName("rex");
-            assertThatThrownBy(() -> util.validatePet(pet))
+            assertThatThrownBy(() -> validationUtil.validatePet(pet))
                     .isInstanceOf(InvalidNameException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidNameException para nome maior que 40 caracteres")
         void shouldThrowForNameTooLong() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setName("nome muito longo que ultrapassa quarenta caracteres mesmo");
-            assertThatThrownBy(() -> util.validatePet(pet))
+            assertThatThrownBy(() -> validationUtil.validatePet(pet))
                     .isInstanceOf(InvalidNameException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidTypeException para type null")
         void shouldThrowForNullType() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setType(null);
-            assertThatThrownBy(() -> util.validatePet(pet))
+            assertThatThrownBy(() -> validationUtil.validatePet(pet))
                     .isInstanceOf(InvalidTypeException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidGenderException para gender null")
         void shouldThrowForNullGender() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setGender(null);
-            assertThatThrownBy(() -> util.validatePet(pet))
+            assertThatThrownBy(() -> validationUtil.validatePet(pet))
                     .isInstanceOf(InvalidGenderException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidAddressException para cidade em branco")
         void shouldThrowForBlankCity() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setCity("");
-            assertThatThrownBy(() -> util.validatePet(pet))
+            assertThatThrownBy(() -> validationUtil.validatePet(pet))
                     .isInstanceOf(InvalidAddressException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidAgeException para idade fora do intervalo")
         void shouldThrowForInvalidAge() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setAge("99");
-            assertThatThrownBy(() -> util.validatePet(pet))
+            assertThatThrownBy(() -> validationUtil.validatePet(pet))
                     .isInstanceOf(InvalidAgeException.class);
         }
 
         @Test
         @DisplayName("Deve aceitar 'não informado' como idade válida")
         void shouldAcceptNaoInformadoAsAge() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setAge("não informado");
-            assertThatCode(() -> util.validatePet(pet)).doesNotThrowAnyException();
+            assertThatCode(() -> validationUtil.validatePet(pet)).doesNotThrowAnyException();
         }
 
         @Test
         @DisplayName("Deve lançar InvalidWeightException para peso fora do intervalo")
         void shouldThrowForInvalidWeight() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setWeight("100");
-            assertThatThrownBy(() -> util.validatePet(pet))
+            assertThatThrownBy(() -> validationUtil.validatePet(pet))
                     .isInstanceOf(InvalidWeightException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidRaceException para raça com mais de 20 caracteres")
         void shouldThrowForRaceTooLong() {
-            PetModel pet = buildValidPet();
+            PetEntity pet = buildValidPet();
             pet.setRace("raça muito longa demais aqui");
-            assertThatThrownBy(() -> util.validatePet(pet))
+            assertThatThrownBy(() -> validationUtil.validatePet(pet))
                     .isInstanceOf(InvalidRaceException.class);
         }
     }
@@ -156,65 +163,65 @@ class UtilTest {
     @DisplayName("validateUser()")
     class ValidateUser {
 
-        private UserModel buildValidUser() {
-            UserModel user = new UserModel();
+        private UserEntity buildValidUser() {
+            UserEntity user = new UserEntity();
             user.setName("João Silva");
             user.setEmail("joao@email.com");
             user.setPassword("senha1234");
             user.setNumber("81912345678");
-            user.setRole(UserModel.Role.ROLE_USER);
+            user.setRole(UserEntity.Role.ROLE_USER);
             return user;
         }
 
         @Test
         @DisplayName("Deve validar usuário com dados corretos")
         void shouldPassForValidUser() {
-            assertThatCode(() -> util.validateUser(buildValidUser()))
+            assertThatCode(() -> validationUtil.validateUser(buildValidUser()))
                     .doesNotThrowAnyException();
         }
 
         @Test
         @DisplayName("Deve lançar InvalidNameException para nome sem sobrenome")
         void shouldThrowForNameWithoutLastName() {
-            UserModel user = buildValidUser();
+            UserEntity user = buildValidUser();
             user.setName("João");
-            assertThatThrownBy(() -> util.validateUser(user))
+            assertThatThrownBy(() -> validationUtil.validateUser(user))
                     .isInstanceOf(InvalidNameException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidEmailException para email inválido")
         void shouldThrowForInvalidEmail() {
-            UserModel user = buildValidUser();
+            UserEntity user = buildValidUser();
             user.setEmail("emailinvalido");
-            assertThatThrownBy(() -> util.validateUser(user))
+            assertThatThrownBy(() -> validationUtil.validateUser(user))
                     .isInstanceOf(InvalidEmailException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidPasswordException para senha com menos de 8 caracteres")
         void shouldThrowForShortPassword() {
-            UserModel user = buildValidUser();
+            UserEntity user = buildValidUser();
             user.setPassword("1234");
-            assertThatThrownBy(() -> util.validateUser(user))
+            assertThatThrownBy(() -> validationUtil.validateUser(user))
                     .isInstanceOf(InvalidPasswordException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidNumberException para número com formato incorreto")
         void shouldThrowForInvalidNumber() {
-            UserModel user = buildValidUser();
+            UserEntity user = buildValidUser();
             user.setNumber("12345");
-            assertThatThrownBy(() -> util.validateUser(user))
+            assertThatThrownBy(() -> validationUtil.validateUser(user))
                     .isInstanceOf(InvalidNumberException.class);
         }
 
         @Test
         @DisplayName("Deve lançar InvalidNumberException para número com letras")
         void shouldThrowForAlphanumericNumber() {
-            UserModel user = buildValidUser();
+            UserEntity user = buildValidUser();
             user.setNumber("8191234abc7");
-            assertThatThrownBy(() -> util.validateUser(user))
+            assertThatThrownBy(() -> validationUtil.validateUser(user))
                     .isInstanceOf(InvalidNumberException.class);
         }
     }
@@ -226,18 +233,18 @@ class UtilTest {
         @Test
         @DisplayName("toEntity() deve mapear DTO para PetModel corretamente")
         void shouldMapDtoToPetModel() {
-            PetRecordDTO dto = new PetRecordDTO(
+            PetDTOs.PetRecord dto = new PetDTOs.PetRecord(
                     "Rex Caramelo", "CÃO", "M", "Recife", "PE", "5", "10", "vira-lata"
             );
-            UserModel user = new UserModel();
+            UserEntity user = new UserEntity();
             user.setId(UUID.randomUUID());
             user.setName("João Silva");
 
-            PetModel pet = util.toEntity(dto, user);
+            PetEntity pet = petMapper.toEntity(dto, user);
 
             assertThat(pet.getName()).isEqualTo("rex caramelo");
-            assertThat(pet.getType()).isEqualTo(PetModel.Type.CAO);
-            assertThat(pet.getGender()).isEqualTo(PetModel.Gender.M);
+            assertThat(pet.getType()).isEqualTo(PetEntity.Type.CAO);
+            assertThat(pet.getGender()).isEqualTo(PetEntity.Gender.M);
             assertThat(pet.getCity()).isEqualTo("recife");
             assertThat(pet.getState()).isEqualTo("PE");
             assertThat(pet.getOwner()).isEqualTo(user);
@@ -247,14 +254,14 @@ class UtilTest {
         @Test
         @DisplayName("toDTO() deve mapear UserModel para UserResponseDTO corretamente")
         void shouldMapUserModelToDTO() {
-            UserModel user = new UserModel();
+            UserEntity user = new UserEntity();
             user.setId(UUID.randomUUID());
             user.setName("Maria Souza");
             user.setEmail("maria@email.com");
             user.setNumber("81900000000");
-            user.setRole(UserModel.Role.ROLE_ADMIN);
+            user.setRole(UserEntity.Role.ROLE_ADMIN);
 
-            UserResponseDTO dto = util.toDTO(user);
+            UserDTOs.UserResponse dto = userMapper.toDTO(user);
 
             assertThat(dto.name()).isEqualTo("Maria Souza");
             assertThat(dto.email()).isEqualTo("maria@email.com");

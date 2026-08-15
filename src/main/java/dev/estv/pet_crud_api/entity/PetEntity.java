@@ -1,4 +1,4 @@
-package dev.estv.pet_crud_api.model;
+package dev.estv.pet_crud_api.entity;
 
 import dev.estv.pet_crud_api.exception.exceptions.InvalidGenderException;
 import dev.estv.pet_crud_api.exception.exceptions.InvalidTypeException;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PetModel {
+public class PetEntity {
 
     @Id
     @GeneratedValue
@@ -49,7 +49,7 @@ public class PetModel {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private UserModel owner;
+    private UserEntity owner;
 
     private LocalDateTime createdAt;
 

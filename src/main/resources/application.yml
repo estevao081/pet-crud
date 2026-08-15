@@ -14,11 +14,17 @@ spring:
     hibernate:
       ddl-auto: update
 
+  profiles:
+    active: test
+
   cache:
     type: jcache
     jcache:
       provider: com.hazelcast.cache.impl.HazelcastServerCachingProvider
       config: classpath:hazelcast.xml
+
+server:
+  port: 8090
 
 api:
   security:

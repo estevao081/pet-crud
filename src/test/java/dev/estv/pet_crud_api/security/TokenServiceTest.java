@@ -1,6 +1,6 @@
 package dev.estv.pet_crud_api.security;
 
-import dev.estv.pet_crud_api.model.UserModel;
+import dev.estv.pet_crud_api.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,19 +21,19 @@ class TokenServiceTest {
         ReflectionTestUtils.setField(tokenService, "secret", "test-secret-key-for-unit-tests-only");
     }
 
-    private UserModel buildUser() {
-        UserModel user = new UserModel();
+    private UserEntity buildUser() {
+        UserEntity user = new UserEntity();
         user.setId(UUID.randomUUID());
         user.setEmail("joao@email.com");
         user.setName("João Silva");
-        user.setRole(UserModel.Role.ROLE_USER);
+        user.setRole(UserEntity.Role.ROLE_USER);
         return user;
     }
 
     @Test
     @DisplayName("Deve gerar um token não nulo e não vazio")
     void shouldGenerateNonNullToken() {
-        UserModel user = buildUser();
+        UserEntity user = buildUser();
         String token = tokenService.generateToken(user);
         assertThat(token).isNotNull().isNotBlank();
     }
@@ -41,7 +41,7 @@ class TokenServiceTest {
     @Test
     @DisplayName("Deve validar token e retornar o email do subject")
     void shouldValidateTokenAndReturnEmail() {
-        UserModel user = buildUser();
+        UserEntity user = buildUser();
         String token = tokenService.generateToken(user);
 
         String subject = tokenService.validateToken(token);
@@ -66,8 +66,8 @@ class TokenServiceTest {
     @Test
     @DisplayName("Deve extrair a role corretamente do token")
     void shouldExtractRoleFromToken() {
-        UserModel user = buildUser();
-        user.setRole(UserModel.Role.ROLE_ADMIN);
+        UserEntity user = buildUser();
+        user.setRole(UserEntity.Role.ROLE_ADMIN);
         String token = tokenService.generateToken(user);
 
         String role = tokenService.getRole(token);
@@ -85,8 +85,8 @@ class TokenServiceTest {
     @Test
     @DisplayName("Tokens gerados para usuários diferentes devem ser distintos")
     void shouldGenerateDifferentTokensForDifferentUsers() {
-        UserModel user1 = buildUser();
-        UserModel user2 = buildUser();
+        UserEntity user1 = buildUser();
+        UserEntity user2 = buildUser();
         user2.setEmail("maria@email.com");
 
         String token1 = tokenService.generateToken(user1);

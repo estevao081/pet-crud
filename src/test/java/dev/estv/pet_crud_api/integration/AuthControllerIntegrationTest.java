@@ -1,9 +1,9 @@
 package dev.estv.pet_crud_api.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.estv.pet_crud_api.dto.request.LoginRequestDTO;
-import dev.estv.pet_crud_api.dto.request.UserRecordDTO;
-import dev.estv.pet_crud_api.model.UserModel;
+import dev.estv.pet_crud_api.dto.AuthDTOs;
+import dev.estv.pet_crud_api.dto.UserDTOs;
+import dev.estv.pet_crud_api.entity.UserEntity;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ class AuthControllerIntegrationTest {
         @Test
         @DisplayName("Deve registrar novo usuário e retornar 201 com token")
         void shouldRegisterAndReturn201() throws Exception {
-            UserRecordDTO dto = new UserRecordDTO(
+            UserDTOs.UserRecord dto = new UserDTOs.UserRecord(
                     "João Silva", "81912345678", "joao@email.com", "senha1234"
             );
 
@@ -65,7 +65,7 @@ class AuthControllerIntegrationTest {
         @Test
         @DisplayName("Deve retornar 409 quando email já está em uso")
         void shouldReturn409WhenEmailAlreadyExists() throws Exception {
-            UserRecordDTO dto = new UserRecordDTO(
+            UserDTOs.UserRecord dto = new UserDTOs.UserRecord(
                     "João Silva", "81912345678", "joao@email.com", "senha1234"
             );
 
@@ -87,7 +87,7 @@ class AuthControllerIntegrationTest {
         @Test
         @DisplayName("Deve retornar 400 quando campos obrigatórios estão vazios")
         void shouldReturn400WhenRequiredFieldsMissing() throws Exception {
-            UserRecordDTO dto = new UserRecordDTO("", "", "", "");
+            UserDTOs.UserRecord dto = new UserDTOs.UserRecord("", "", "", "");
 
             mockMvc.perform(post("/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -99,7 +99,7 @@ class AuthControllerIntegrationTest {
         @Test
         @DisplayName("Deve retornar 400 para nome sem sobrenome")
         void shouldReturn400ForNameWithoutLastName() throws Exception {
-            UserRecordDTO dto = new UserRecordDTO(
+            UserDTOs.UserRecord dto = new UserDTOs.UserRecord(
                     "Joao", "81912345678", "joao@email.com", "senha1234"
             );
 
@@ -117,19 +117,19 @@ class AuthControllerIntegrationTest {
 
         @BeforeEach
         void createUser() {
-            UserModel user = new UserModel();
+            UserEntity user = new UserEntity();
             user.setName("João Silva");
             user.setEmail("joao@email.com");
             user.setPassword(passwordEncoder.encode("senha1234"));
             user.setNumber("81912345678");
-            user.setRole(UserModel.Role.ROLE_USER);
+            user.setRole(UserEntity.Role.ROLE_USER);
             userRepository.save(user);
         }
 
         @Test
         @DisplayName("Deve fazer login com sucesso e retornar token")
         void shouldLoginSuccessfullyAndReturnToken() throws Exception {
-            LoginRequestDTO dto = new LoginRequestDTO("joao@email.com", "senha1234");
+            AuthDTOs.LoginRequest dto = new AuthDTOs.LoginRequest("joao@email.com", "senha1234");
 
             mockMvc.perform(post("/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -144,7 +144,7 @@ class AuthControllerIntegrationTest {
         @Test
         @DisplayName("Deve retornar 401 para senha incorreta")
         void shouldReturn401ForWrongPassword() throws Exception {
-            LoginRequestDTO dto = new LoginRequestDTO("joao@email.com", "senhaErrada");
+            AuthDTOs.LoginRequest dto = new AuthDTOs.LoginRequest("joao@email.com", "senhaErrada");
 
             mockMvc.perform(post("/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -157,7 +157,7 @@ class AuthControllerIntegrationTest {
         @Test
         @DisplayName("Deve lançar exceção quando email não existe")
         void shouldThrowWhenEmailNotFound() throws Exception {
-            LoginRequestDTO dto = new LoginRequestDTO("naoexiste@email.com", "senha1234");
+            AuthDTOs.LoginRequest dto = new AuthDTOs.LoginRequest("naoexiste@email.com", "senha1234");
 
             mockMvc.perform(post("/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)

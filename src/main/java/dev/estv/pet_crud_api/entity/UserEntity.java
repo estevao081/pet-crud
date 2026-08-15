@@ -1,4 +1,4 @@
-package dev.estv.pet_crud_api.model;
+package dev.estv.pet_crud_api.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Table(name = "users")
-public class UserModel {
+public class UserEntity {
 
     @Id
     @GeneratedValue
@@ -28,7 +28,7 @@ public class UserModel {
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonIgnore
-    private List<PetModel> pets;
+    private List<PetEntity> pets;
 
     public enum Role {
         ROLE_USER,

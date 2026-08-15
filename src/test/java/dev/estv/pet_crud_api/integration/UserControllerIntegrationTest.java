@@ -1,8 +1,8 @@
 package dev.estv.pet_crud_api.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.estv.pet_crud_api.dto.request.UserUpdateDTO;
-import dev.estv.pet_crud_api.model.UserModel;
+import dev.estv.pet_crud_api.dto.UserDTOs;
+import dev.estv.pet_crud_api.entity.UserEntity;
 import dev.estv.pet_crud_api.repository.PetRepository;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import dev.estv.pet_crud_api.security.TokenService;
@@ -50,29 +50,29 @@ class UserControllerIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private UserModel adminUser;
-    private UserModel regularUser;
+    private UserEntity adminUser;
+    private UserEntity regularUser;
     private String adminToken;
     private String userToken;
 
     @BeforeEach
     void setUp() {
-        adminUser = new UserModel();
+        adminUser = new UserEntity();
         adminUser.setName("Admin Master");
         adminUser.setEmail("admin@pets.com");
         adminUser.setPassword(passwordEncoder.encode("admin1234"));
         adminUser.setNumber("81900000001");
-        adminUser.setRole(UserModel.Role.ROLE_ADMIN);
+        adminUser.setRole(UserEntity.Role.ROLE_ADMIN);
         adminUser.setPets(new ArrayList<>());
         userRepository.save(adminUser);
         adminToken = tokenService.generateToken(adminUser);
 
-        regularUser = new UserModel();
+        regularUser = new UserEntity();
         regularUser.setName("João Silva");
         regularUser.setEmail("joao@email.com");
         regularUser.setPassword(passwordEncoder.encode("senha1234"));
         regularUser.setNumber("81912345678");
-        regularUser.setRole(UserModel.Role.ROLE_USER);
+        regularUser.setRole(UserEntity.Role.ROLE_USER);
         regularUser.setPets(new ArrayList<>());
         userRepository.save(regularUser);
         userToken = tokenService.generateToken(regularUser);
@@ -155,7 +155,7 @@ class UserControllerIntegrationTest {
         @Test
         @DisplayName("Deve atualizar usuário com dados válidos")
         void shouldUpdateUserWithValidData() throws Exception {
-            UserUpdateDTO dto = new UserUpdateDTO(
+            UserDTOs.UserUpdate dto = new UserDTOs.UserUpdate(
                     "João Atualizado", "81999999999", "joao@email.com"
             );
 
@@ -172,7 +172,7 @@ class UserControllerIntegrationTest {
         @DisplayName("Deve retornar 404 para usuário inexistente")
         void shouldReturn404ForNonExistentUser() throws Exception {
             UUID randomId = UUID.randomUUID();
-            UserUpdateDTO dto = new UserUpdateDTO(
+            UserDTOs.UserUpdate dto = new UserDTOs.UserUpdate(
                     "João Atualizado", "81999999999", "joao@email.com"
             );
 
@@ -187,7 +187,7 @@ class UserControllerIntegrationTest {
         @Test
         @DisplayName("Deve retornar 403 ao atualizar sem autenticação")
         void shouldReturn403WhenUnauthenticated() throws Exception {
-            UserUpdateDTO dto = new UserUpdateDTO(
+            UserDTOs.UserUpdate dto = new UserDTOs.UserUpdate(
                     "João Atualizado", "81999999999", "joao@email.com"
             );
 

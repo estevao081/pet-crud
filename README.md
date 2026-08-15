@@ -69,7 +69,7 @@ src/main/java/dev/estv/pet_crud_api/
 ├── security/          # Filtro JWT, TokenService, SecurityConfig
 ├── service/           # Regras de negócio (PetService, UserService)
 ├── specification/     # Filtros dinâmicos com JPA Specification
-└── util/              # Utilitários (Util, PetMapper, ReturnImageURL)
+└── validationUtil/              # Utilitários (Util, PetMapper, ReturnImageURL)
 ```
 
 ### Fluxo de uma requisição autenticada

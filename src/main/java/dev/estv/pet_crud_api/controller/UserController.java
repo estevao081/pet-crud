@@ -1,12 +1,10 @@
 package dev.estv.pet_crud_api.controller;
 
-import dev.estv.pet_crud_api.dto.request.UserUpdateDTO;
-import dev.estv.pet_crud_api.dto.response.ApiResponse;
-import dev.estv.pet_crud_api.dto.response.UserResponseDTO;
-import dev.estv.pet_crud_api.model.UserModel;
+import dev.estv.pet_crud_api.dto.ApiResponse;
+import dev.estv.pet_crud_api.dto.UserDTOs;
+import dev.estv.pet_crud_api.entity.UserEntity;
 import dev.estv.pet_crud_api.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,31 +22,31 @@ public class UserController {
     }
 
     @GetMapping("/admin")
-    public ResponseEntity<ApiResponse<List<UserResponseDTO>>> findAll() {
-        List<UserResponseDTO> users = userService.findAll();
-        return ResponseEntity.ok(new ApiResponse<>(true, users, "Users list"));
+    public ResponseEntity<ApiResponse<List<UserDTOs.UserResponse>>> findAll() {
+        List<UserDTOs.UserResponse> users = userService.findAll();
+        return ResponseEntity.status(200).body(new ApiResponse<>(true, users, "Users list"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         boolean deleted = userService.delete(id);
         if (!deleted) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            return ResponseEntity.status(404)
                     .body(new ApiResponse<>(false, null, "User not found"));
         }
-        return ResponseEntity.ok(
-                new ApiResponse<>(true, null, "User removed successfully")
-        );
+        return ResponseEntity.status(204).body(
+                new ApiResponse<>(true, null, "User removed successfully"));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserModel>> update(@PathVariable(value = "id") UUID id,
-                                                         @RequestBody @Valid UserUpdateDTO dto) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserEntity>> update(@PathVariable(value = "id") UUID id,
+                                                          @RequestBody @Valid UserDTOs.UserUpdate dto) {
         if (userService.findById(id) == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            return ResponseEntity.status(404)
                     .body(new ApiResponse<>(false, null, "User not found"));
         }
-        UserModel updatedUser = userService.update(id, dto);
+        UserEntity updatedUser = userService.update(id, dto);
+        updatedUser.setPassword(null);
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(true, updatedUser, "User updated succesfuly"));
     }
