@@ -60,7 +60,7 @@ export default function Admin() {
     if (error) toast.error((error as Error).message);
   }, [error]);
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const users = [...(data?.data ?? [])].sort((a, b) => {
@@ -108,8 +108,7 @@ export default function Admin() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead>Papel</TableHead>
-                  <TableHead className="hidden md:table-cell">ID</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -130,9 +129,6 @@ export default function Admin() {
                         <Badge variant={u.role === "ROLE_ADMIN" ? "default" : "secondary"}>
                           {u.role === "ROLE_ADMIN" ? "Admin" : "Usuário"}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
-                        {u.id}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

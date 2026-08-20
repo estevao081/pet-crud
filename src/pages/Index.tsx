@@ -120,12 +120,12 @@ export default function Index() {
             ) : (
               <>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/login">
+                  <Link to="/auth/login">
                     <LogIn className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Entrar</span>
                   </Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/register">
+                  <Link to="/auth/register">
                     <UserPlus className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Cadastrar</span>
                   </Link>
                 </Button>
