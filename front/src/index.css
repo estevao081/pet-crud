@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 50% 98%;
+    --foreground: 25 30% 15%;
+
+    --card: 30 40% 99%;
+    --card-foreground: 25 30% 15%;
+
+    --popover: 30 40% 99%;
+    --popover-foreground: 25 30% 15%;
+
+    --primary: 25 80% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 160 40% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 30 25% 93%;
+    --muted-foreground: 25 15% 45%;
+
+    --accent: 45 90% 60%;
+    --accent-foreground: 25 30% 15%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 20% 88%;
+    --input: 30 20% 88%;
+    --ring: 25 80% 55%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 30 30% 96%;
+    --sidebar-foreground: 25 30% 20%;
+    --sidebar-primary: 25 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 25% 92%;
+    --sidebar-accent-foreground: 25 30% 15%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 25 80% 55%;
+
+    --success: 160 40% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 90% 60%;
+    --warning-foreground: 25 30% 15%;
+
+    --font-display: 'Fredoka', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    --shadow-card: 0 2px 12px -2px hsl(25 30% 15% / 0.06);
+    --shadow-elevated: 0 8px 30px -6px hsl(25 30% 15% / 0.1);
+    --shadow-glow: 0 0 20px hsl(25 80% 55% / 0.15);
+  }
+
+  .dark {
+    --background: 25 20% 8%;
+    --foreground: 30 20% 92%;
+    --card: 25 18% 12%;
+    --card-foreground: 30 20% 92%;
+    --popover: 25 18% 12%;
+    --popover-foreground: 30 20% 92%;
+    --primary: 25 80% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 160 40% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 25 15% 18%;
+    --muted-foreground: 30 15% 60%;
+    --accent: 45 90% 60%;
+    --accent-foreground: 25 30% 15%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 25 15% 20%;
+    --input: 25 15% 20%;
+    --ring: 25 80% 55%;
+    --sidebar-background: 25 18% 10%;
+    --sidebar-foreground: 30 20% 90%;
+    --sidebar-primary: 25 80% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 25 15% 16%;
+    --sidebar-accent-foreground: 30 20% 90%;
+    --sidebar-border: 25 15% 20%;
+    --sidebar-ring: 25 80% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-body {
+    font-family: var(--font-body);
+  }
+}
