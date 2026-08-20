@@ -25,7 +25,7 @@ services:
   # Backend API
   backend:
     build:
-      context: ./pet-crud-api
+      context: ./back
       dockerfile: Dockerfile
     container_name: pet_crud-backend
     environment:
@@ -45,7 +45,7 @@ services:
   # Frontend
   frontend:
     build:
-      context: ./pet-crud-front
+      context: ./front
       dockerfile: Dockerfile
     container_name: pet_crud-frontend
     ports:
