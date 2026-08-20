@@ -1,8 +1,8 @@
 package dev.estv.pet_crud_api.integration;
 
 import dev.estv.pet_crud_api.dto.PetDTOs;
-import dev.estv.pet_crud_api.entity.PetEntity;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.PetModel;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.repository.PetRepository;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import dev.estv.pet_crud_api.specification.PetSpecification;
@@ -32,16 +32,16 @@ class RepositoryIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
-    private UserEntity testUser;
+    private UserModel testUser;
 
     @BeforeEach
     void setUp() {
-        testUser = new UserEntity();
+        testUser = new UserModel();
         testUser.setName("João Silva");
         testUser.setEmail("joao@email.com");
         testUser.setPassword("encoded_password");
         testUser.setNumber("81912345678");
-        testUser.setRole(UserEntity.Role.ROLE_USER);
+        testUser.setRole(UserModel.Role.ROLE_USER);
         testUser.setPets(new ArrayList<>());
         userRepository.save(testUser);
     }
@@ -52,11 +52,11 @@ class RepositoryIntegrationTest {
         userRepository.deleteAll();
     }
 
-    private PetEntity buildPet(String name, PetEntity.Type type, String city) {
-        return PetEntity.builder()
+    private PetModel buildPet(String name, PetModel.Type type, String city) {
+        return PetModel.builder()
                 .name(name)
                 .type(type)
-                .gender(PetEntity.Gender.M)
+                .gender(PetModel.Gender.M)
                 .city(city)
                 .state("PE")
                 .age("5")
@@ -75,7 +75,7 @@ class RepositoryIntegrationTest {
         @Test
         @DisplayName("findByUsermail() deve retornar usuário pelo email")
         void shouldFindUserByEmail() {
-            Optional<UserEntity> found = userRepository.findByUsermail("joao@email.com");
+            Optional<UserModel> found = userRepository.findByUsermail("joao@email.com");
 
             assertThat(found).isPresent();
             assertThat(found.get().getName()).isEqualTo("João Silva");
@@ -84,7 +84,7 @@ class RepositoryIntegrationTest {
         @Test
         @DisplayName("findByUsermail() deve retornar Optional vazio para email inexistente")
         void shouldReturnEmptyForNonExistentEmail() {
-            Optional<UserEntity> found = userRepository.findByUsermail("naoexiste@email.com");
+            Optional<UserModel> found = userRepository.findByUsermail("naoexiste@email.com");
 
             assertThat(found).isEmpty();
         }
@@ -92,11 +92,11 @@ class RepositoryIntegrationTest {
         @Test
         @DisplayName("Deve persistir e recuperar usuário com todos os campos")
         void shouldPersistAndRetrieveUser() {
-            Optional<UserEntity> found = userRepository.findById(testUser.getId());
+            Optional<UserModel> found = userRepository.findById(testUser.getId());
 
             assertThat(found).isPresent();
             assertThat(found.get().getEmail()).isEqualTo("joao@email.com");
-            assertThat(found.get().getRole()).isEqualTo(UserEntity.Role.ROLE_USER);
+            assertThat(found.get().getRole()).isEqualTo(UserModel.Role.ROLE_USER);
         }
     }
 
@@ -107,10 +107,10 @@ class RepositoryIntegrationTest {
         @Test
         @DisplayName("Deve salvar e recuperar pet pelo id")
         void shouldSaveAndFindPetById() {
-            PetEntity pet = buildPet("rex caramelo", PetEntity.Type.CAO, "recife");
-            PetEntity saved = petRepository.save(pet);
+            PetModel pet = buildPet("rex caramelo", PetModel.Type.CAO, "recife");
+            PetModel saved = petRepository.save(pet);
 
-            Optional<PetEntity> found = petRepository.findById(saved.getId());
+            Optional<PetModel> found = petRepository.findById(saved.getId());
 
             assertThat(found).isPresent();
             assertThat(found.get().getName()).isEqualTo("rex caramelo");
@@ -120,12 +120,12 @@ class RepositoryIntegrationTest {
         @Test
         @DisplayName("Deve listar todos os pets com paginação")
         void shouldListAllPetsWithPagination() {
-            petRepository.save(buildPet("rex caramelo", PetEntity.Type.CAO, "recife"));
-            petRepository.save(buildPet("luna fofinha", PetEntity.Type.GATO, "olinda"));
-            petRepository.save(buildPet("bidu manchado", PetEntity.Type.CAO, "caruaru"));
+            petRepository.save(buildPet("rex caramelo", PetModel.Type.CAO, "recife"));
+            petRepository.save(buildPet("luna fofinha", PetModel.Type.GATO, "olinda"));
+            petRepository.save(buildPet("bidu manchado", PetModel.Type.CAO, "caruaru"));
 
             PageRequest pageable = PageRequest.of(0, 2, Sort.by("createdAt").descending());
-            Page<PetEntity> page = petRepository.findAll(pageable);
+            Page<PetModel> page = petRepository.findAll(pageable);
 
             assertThat(page.getContent()).hasSize(2);
             assertThat(page.getTotalElements()).isEqualTo(3);
@@ -135,7 +135,7 @@ class RepositoryIntegrationTest {
         @Test
         @DisplayName("Deve deletar pet pelo id")
         void shouldDeletePetById() {
-            PetEntity pet = petRepository.save(buildPet("rex caramelo", PetEntity.Type.CAO, "recife"));
+            PetModel pet = petRepository.save(buildPet("rex caramelo", PetModel.Type.CAO, "recife"));
 
             petRepository.deleteById(pet.getId());
 
@@ -149,9 +149,9 @@ class RepositoryIntegrationTest {
 
         @BeforeEach
         void createPets() {
-            petRepository.save(buildPet("rex caramelo", PetEntity.Type.CAO, "recife"));
-            petRepository.save(buildPet("luna fofinha", PetEntity.Type.GATO, "olinda"));
-            petRepository.save(buildPet("bidu manchado", PetEntity.Type.CAO, "caruaru"));
+            petRepository.save(buildPet("rex caramelo", PetModel.Type.CAO, "recife"));
+            petRepository.save(buildPet("luna fofinha", PetModel.Type.GATO, "olinda"));
+            petRepository.save(buildPet("bidu manchado", PetModel.Type.CAO, "caruaru"));
         }
 
         @Test
@@ -160,7 +160,7 @@ class RepositoryIntegrationTest {
             PetDTOs.PetResponse filter = new PetDTOs.PetResponse();
             filter.setName("rex");
 
-            List<PetEntity> result = petRepository.findAll(PetSpecification.filter(filter));
+            List<PetModel> result = petRepository.findAll(PetSpecification.filter(filter));
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getName()).isEqualTo("rex caramelo");
@@ -172,10 +172,10 @@ class RepositoryIntegrationTest {
             PetDTOs.PetResponse filter = new PetDTOs.PetResponse();
             filter.setType("CÃO");
 
-            List<PetEntity> result = petRepository.findAll(PetSpecification.filter(filter));
+            List<PetModel> result = petRepository.findAll(PetSpecification.filter(filter));
 
             assertThat(result).hasSize(2);
-            assertThat(result).allMatch(p -> p.getType() == PetEntity.Type.CAO);
+            assertThat(result).allMatch(p -> p.getType() == PetModel.Type.CAO);
         }
 
         @Test
@@ -184,7 +184,7 @@ class RepositoryIntegrationTest {
             PetDTOs.PetResponse filter = new PetDTOs.PetResponse();
             filter.setCity("olinda");
 
-            List<PetEntity> result = petRepository.findAll(PetSpecification.filter(filter));
+            List<PetModel> result = petRepository.findAll(PetSpecification.filter(filter));
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getName()).isEqualTo("luna fofinha");
@@ -195,7 +195,7 @@ class RepositoryIntegrationTest {
         void shouldReturnAllWhenFilterIsEmpty() {
             PetDTOs.PetResponse filter = new PetDTOs.PetResponse();
 
-            List<PetEntity> result = petRepository.findAll(PetSpecification.filter(filter));
+            List<PetModel> result = petRepository.findAll(PetSpecification.filter(filter));
 
             assertThat(result).hasSize(3);
         }
@@ -207,7 +207,7 @@ class RepositoryIntegrationTest {
             filter.setType("CÃO");
             filter.setCity("recife");
 
-            List<PetEntity> result = petRepository.findAll(PetSpecification.filter(filter));
+            List<PetModel> result = petRepository.findAll(PetSpecification.filter(filter));
 
             assertThat(result).hasSize(1);
             assertThat(result.get(0).getName()).isEqualTo("rex caramelo");

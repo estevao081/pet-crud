@@ -2,7 +2,7 @@ package dev.estv.pet_crud_api.controller;
 
 import dev.estv.pet_crud_api.dto.ApiResponse;
 import dev.estv.pet_crud_api.dto.PetDTOs;
-import dev.estv.pet_crud_api.entity.PetEntity;
+import dev.estv.pet_crud_api.entity.PetModel;
 import dev.estv.pet_crud_api.service.PetService;
 import dev.estv.pet_crud_api.util.ReturnImageURL;
 import jakarta.validation.Valid;
@@ -63,17 +63,13 @@ public class PetController {
         return ResponseEntity.status(200).body(new ApiResponse<>(true, pets, "Search result"));
     }
 
-    @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<PetEntity>> update(
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<PetModel>> update(
             @PathVariable UUID id,
             @ModelAttribute @Valid PetDTOs.PetRecord dto,
             @RequestParam(value = "image", required = false) MultipartFile image) {
-        if (petService.findById(id) == null) {
-            return ResponseEntity.status(404)
-                    .body(new ApiResponse<>(false, null, "Pet not found"));
-        }
         String imageUrl = (image != null && !image.isEmpty()) ? returnImageURL.imageUrl(image) : null;
-        PetEntity updatedPet = petService.update(id, dto, imageUrl);
+        PetModel updatedPet = petService.update(id, dto, imageUrl);
         return ResponseEntity.status(200).body(new ApiResponse<>(true, updatedPet, "Pet updated successfully"));
     }
 }

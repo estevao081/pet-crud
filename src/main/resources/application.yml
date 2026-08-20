@@ -3,38 +3,19 @@ spring:
     name: pet-crud-api
 
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     generate-ddl: true
     show-sql: true
     hibernate:
-      ddl-auto: update
-
-  profiles:
-    active: test
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
 
   cache:
     type: jcache
     jcache:
       provider: com.hazelcast.cache.impl.HazelcastServerCachingProvider
       config: classpath:hazelcast.xml
-
-server:
-  port: 8090
-
-api:
-  security:
-    token:
-      secret: mykey
-
-cloudinary:
-  cloud-name: ${CLOUDINARY_NAME}
-  api-key: ${CLOUDINARY_KEY}
-  api-secret: ${CLOUDINARY_SECRET}
-
-admin:
-  email: ${ADMIN_EMAIL}

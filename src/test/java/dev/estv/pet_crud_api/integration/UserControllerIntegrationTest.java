@@ -2,7 +2,7 @@ package dev.estv.pet_crud_api.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.estv.pet_crud_api.dto.UserDTOs;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.repository.PetRepository;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import dev.estv.pet_crud_api.security.TokenService;
@@ -50,29 +50,29 @@ class UserControllerIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private UserEntity adminUser;
-    private UserEntity regularUser;
+    private UserModel adminUser;
+    private UserModel regularUser;
     private String adminToken;
     private String userToken;
 
     @BeforeEach
     void setUp() {
-        adminUser = new UserEntity();
+        adminUser = new UserModel();
         adminUser.setName("Admin Master");
         adminUser.setEmail("admin@pets.com");
         adminUser.setPassword(passwordEncoder.encode("admin1234"));
         adminUser.setNumber("81900000001");
-        adminUser.setRole(UserEntity.Role.ROLE_ADMIN);
+        adminUser.setRole(UserModel.Role.ROLE_ADMIN);
         adminUser.setPets(new ArrayList<>());
         userRepository.save(adminUser);
         adminToken = tokenService.generateToken(adminUser);
 
-        regularUser = new UserEntity();
+        regularUser = new UserModel();
         regularUser.setName("João Silva");
         regularUser.setEmail("joao@email.com");
         regularUser.setPassword(passwordEncoder.encode("senha1234"));
         regularUser.setNumber("81912345678");
-        regularUser.setRole(UserEntity.Role.ROLE_USER);
+        regularUser.setRole(UserModel.Role.ROLE_USER);
         regularUser.setPets(new ArrayList<>());
         userRepository.save(regularUser);
         userToken = tokenService.generateToken(regularUser);

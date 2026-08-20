@@ -1,13 +1,14 @@
 package dev.estv.pet_crud_api.service;
 
 import dev.estv.pet_crud_api.dto.PetDTOs;
-import dev.estv.pet_crud_api.entity.PetEntity;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.PetModel;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.repository.PetRepository;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import dev.estv.pet_crud_api.specification.PetSpecification;
 import dev.estv.pet_crud_api.util.PetMapper;
 import dev.estv.pet_crud_api.util.ValidationUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,7 +28,8 @@ public class PetService {
     private final PetMapper petMapper;
     private final ValidationUtil validationUtil;
 
-    public PetService(UserRepository userRepository, PetRepository petRepository, PetMapper petMapper, ValidationUtil validationUtil) {
+    public PetService(UserRepository userRepository, PetRepository petRepository, PetMapper petMapper,
+            ValidationUtil validationUtil) {
         this.userRepository = userRepository;
         this.petRepository = petRepository;
         this.petMapper = petMapper;
@@ -46,18 +47,20 @@ public class PetService {
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public PetEntity save(PetDTOs.PetRecord dto, String imageUrl) {
+    public PetModel save(PetDTOs.PetRecord dto, String imageUrl) {
         String usermail = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
 
-        Optional<UserEntity> userModelOptional = userRepository.findByUsermail(usermail);
-        UserEntity user = userModelOptional.get();
+        UserModel user = userRepository.findByUsermail(usermail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        PetEntity pet = petMapper.toEntity(dto, user);
+        PetModel pet = petMapper.toEntity(dto, user);
+
         pet.setImageUrl(imageUrl);
+
         validationUtil.validatePet(pet);
-        user.getPets().add(pet);
+
         return petRepository.save(pet);
     }
 
@@ -71,18 +74,26 @@ public class PetService {
         return true;
     }
 
+    @Transactional
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public PetEntity update(UUID id, PetDTOs.PetRecord dto, String newImageUrl) {
-        var petModel = petRepository.findById(id).get();
+    public PetModel update(UUID id, PetDTOs.PetRecord dto, String newImageUrl) {
+        PetModel petModel = petRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pet not found"));
+
         String oldImage = petModel.getImageUrl();
+
         BeanUtils.copyProperties(dto, petModel);
-        petModel.setImageUrl(newImageUrl != null ? newImageUrl : oldImage);
+
+        petModel.setImageUrl(
+                newImageUrl != null ? newImageUrl : oldImage);
+
         validationUtil.validatePet(petModel);
-        return petRepository.save(petModel);
+
+        return petModel;
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public PetEntity findById(UUID id) {
+    public PetModel findById(UUID id) {
         return petRepository.findById(id).orElse(null);
     }
 }

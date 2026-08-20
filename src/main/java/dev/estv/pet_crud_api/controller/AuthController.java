@@ -3,7 +3,7 @@ package dev.estv.pet_crud_api.controller;
 import dev.estv.pet_crud_api.dto.ApiResponse;
 import dev.estv.pet_crud_api.dto.AuthDTOs;
 import dev.estv.pet_crud_api.dto.UserDTOs;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.security.TokenService;
 import dev.estv.pet_crud_api.service.UserService;
 import jakarta.validation.Valid;
@@ -19,58 +19,61 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final PasswordEncoder passwordEncoder;
-    private final TokenService tokenService;
-    private final UserService userService;
+        private final PasswordEncoder passwordEncoder;
+        private final TokenService tokenService;
+        private final UserService userService;
 
-    public AuthController(PasswordEncoder passwordEncoder,
-                          TokenService tokenService,
-                          UserService userService) {
-        this.passwordEncoder = passwordEncoder;
-        this.tokenService = tokenService;
-        this.userService = userService;
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthDTOs.LoginResponse>> login(
-            @Valid @RequestBody AuthDTOs.LoginRequest dto) {
-
-        UserEntity user = userService.login(dto)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (!passwordEncoder.matches(dto.password(), user.getPassword())) {
-            return ResponseEntity.status(401)
-                    .body(new ApiResponse<>(false, null, "Invalid credentials"));
+        public AuthController(PasswordEncoder passwordEncoder,
+                        TokenService tokenService,
+                        UserService userService) {
+                this.passwordEncoder = passwordEncoder;
+                this.tokenService = tokenService;
+                this.userService = userService;
         }
 
-        String token = tokenService.generateToken(user);
+        @PostMapping("/login")
+        public ResponseEntity<ApiResponse<AuthDTOs.LoginResponse>> login(
+                        @Valid @RequestBody AuthDTOs.LoginRequest dto) {
 
-        return ResponseEntity.status(200).body(
-                new ApiResponse<>(
-                        true,
-                        new AuthDTOs.LoginResponse(user.getName(), token),
-                        "Login successful"
-                )
-        );
-    }
+                var userOptional = userService.login(dto);
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthDTOs.LoginResponse>> register(
-            @Valid @RequestBody UserDTOs.UserRecord dto) {
+                if (userOptional.isEmpty()) {
+                        return ResponseEntity.status(401)
+                                        .body(new ApiResponse<>(false, null, "Invalid credentials"));
+                }
 
-        if (userService.findByEmail(dto).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse<>(false, null, "User already exists"));
+                UserModel user = userOptional.get();
+
+                if (!passwordEncoder.matches(dto.password(), user.getPassword())) {
+                        return ResponseEntity.status(401)
+                                        .body(new ApiResponse<>(false, null, "Invalid credentials"));
+                }
+
+                String token = tokenService.generateToken(user);
+
+                return ResponseEntity.status(200).body(
+                                new ApiResponse<>(
+                                                true,
+                                                new AuthDTOs.LoginResponse(user.getName(), token),
+                                                "Login successful"));
         }
 
-        UserEntity newUser = userService.save(dto);
-        String token = tokenService.generateToken(newUser);
+        @PostMapping("/register")
+        public ResponseEntity<ApiResponse<AuthDTOs.LoginResponse>> register(
+                        @Valid @RequestBody UserDTOs.UserRecord dto) {
 
-        return ResponseEntity.status(201)
-                .body(new ApiResponse<>(
-                        true,
-                        new AuthDTOs.LoginResponse(dto.name(), token),
-                        "User created successfully"
-                ));
-    }
+                if (userService.findByEmail(dto).isPresent()) {
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                        .body(new ApiResponse<>(false, null, "User already exists"));
+                }
+
+                UserModel newUser = userService.save(dto);
+                String token = tokenService.generateToken(newUser);
+
+                return ResponseEntity.status(201)
+                                .body(new ApiResponse<>(
+                                                true,
+                                                new AuthDTOs.LoginResponse(dto.name(), token),
+                                                "User created successfully"));
+        }
 }

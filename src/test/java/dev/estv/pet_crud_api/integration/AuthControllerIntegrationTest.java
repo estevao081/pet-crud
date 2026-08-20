@@ -3,7 +3,7 @@ package dev.estv.pet_crud_api.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.estv.pet_crud_api.dto.AuthDTOs;
 import dev.estv.pet_crud_api.dto.UserDTOs;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,12 +117,12 @@ class AuthControllerIntegrationTest {
 
         @BeforeEach
         void createUser() {
-            UserEntity user = new UserEntity();
+            UserModel user = new UserModel();
             user.setName("João Silva");
             user.setEmail("joao@email.com");
             user.setPassword(passwordEncoder.encode("senha1234"));
             user.setNumber("81912345678");
-            user.setRole(UserEntity.Role.ROLE_USER);
+            user.setRole(UserModel.Role.ROLE_USER);
             userRepository.save(user);
         }
 

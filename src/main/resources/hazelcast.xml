@@ -11,4 +11,9 @@
         <time-to-live-seconds>120</time-to-live-seconds>
     </map>
 
+    <map name="petImages">
+        <backup-count>0</backup-count>
+        <eviction eviction-policy="LRU" max-size-policy="PER_NODE" size="500"/>
+    </map>
+
 </hazelcast>

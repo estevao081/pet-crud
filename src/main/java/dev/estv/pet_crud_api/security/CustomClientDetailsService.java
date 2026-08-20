@@ -1,6 +1,6 @@
 package dev.estv.pet_crud_api.security;
 
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.UUID;
 
 @Component
 public class CustomClientDetailsService implements UserDetailsService {
@@ -22,13 +23,24 @@ public class CustomClientDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserEntity user = this.userRepository.findByUsermail(email)
+        UserModel user = this.userRepository.findByUsermail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
         return new User(
                 user.getEmail(),
                 user.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()))
-        );
+                Collections.singletonList(
+                        new SimpleGrantedAuthority(user.getRole().name())));
+    }
+
+    public UserDetails loadUserById(UUID id) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return new User(
+                user.getEmail(),
+                user.getPassword(),
+                Collections.singletonList(
+                        new SimpleGrantedAuthority(user.getRole().name())));
     }
 }

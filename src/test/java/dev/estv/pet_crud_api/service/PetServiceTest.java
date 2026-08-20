@@ -1,8 +1,8 @@
 package dev.estv.pet_crud_api.service;
 
 import dev.estv.pet_crud_api.dto.PetDTOs;
-import dev.estv.pet_crud_api.entity.PetEntity;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.PetModel;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.repository.PetRepository;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import dev.estv.pet_crud_api.util.PetMapper;
@@ -50,23 +50,23 @@ class PetServiceTest {
     @InjectMocks
     private PetService petService;
 
-    private UserEntity defaultUser;
-    private PetEntity defaultPet;
+    private UserModel defaultUser;
+    private PetModel defaultPet;
 
     @BeforeEach
     void setUp() {
-        defaultUser = new UserEntity();
+        defaultUser = new UserModel();
         defaultUser.setId(UUID.randomUUID());
         defaultUser.setEmail("joao@email.com");
         defaultUser.setName("João Silva");
-        defaultUser.setRole(UserEntity.Role.ROLE_USER);
+        defaultUser.setRole(UserModel.Role.ROLE_USER);
         defaultUser.setPets(new ArrayList<>());
 
-        defaultPet = PetEntity.builder()
+        defaultPet = PetModel.builder()
                 .id(UUID.randomUUID())
                 .name("rex caramelo")
-                .type(PetEntity.Type.CAO)
-                .gender(PetEntity.Gender.M)
+                .type(PetModel.Type.CAO)
+                .gender(PetModel.Gender.M)
                 .city("recife")
                 .state("PE")
                 .age("5")
@@ -93,7 +93,7 @@ class PetServiceTest {
             PetDTOs.PetResponse dto = new PetDTOs.PetResponse();
             dto.setName("rex caramelo");
 
-            Page<PetEntity> petPage = new PageImpl<>(List.of(defaultPet));
+            Page<PetModel> petPage = new PageImpl<>(List.of(defaultPet));
             when(petRepository.findAll(any(Pageable.class))).thenReturn(petPage);
             when(petMapper.toDTO(defaultPet)).thenReturn(dto);
 
@@ -133,7 +133,7 @@ class PetServiceTest {
             when(petMapper.toEntity(dto, defaultUser)).thenReturn(defaultPet);
             when(petRepository.save(defaultPet)).thenReturn(defaultPet);
 
-            PetEntity saved = petService.save(dto, "http://cloudinary.com/img.jpg");
+            PetModel saved = petService.save(dto, "http://cloudinary.com/img.jpg");
 
             assertThat(saved).isNotNull();
             assertThat(saved.getImageUrl()).isEqualTo("http://cloudinary.com/img.jpg");
@@ -183,7 +183,7 @@ class PetServiceTest {
             UUID id = defaultPet.getId();
             when(petRepository.findById(id)).thenReturn(Optional.of(defaultPet));
 
-            PetEntity found = petService.findById(id);
+            PetModel found = petService.findById(id);
 
             assertThat(found).isNotNull();
             assertThat(found.getId()).isEqualTo(id);
@@ -195,7 +195,7 @@ class PetServiceTest {
             UUID id = UUID.randomUUID();
             when(petRepository.findById(id)).thenReturn(Optional.empty());
 
-            PetEntity found = petService.findById(id);
+            PetModel found = petService.findById(id);
 
             assertThat(found).isNull();
         }
@@ -214,12 +214,12 @@ class PetServiceTest {
             );
 
             when(petRepository.findById(id)).thenReturn(Optional.of(defaultPet));
-            when(petRepository.save(any(PetEntity.class))).thenReturn(defaultPet);
+            when(petRepository.save(any(PetModel.class))).thenReturn(defaultPet);
 
-            PetEntity updated = petService.update(id, dto, null);
+            PetModel updated = petService.update(id, dto, null);
 
             assertThat(updated.getImageUrl()).isEqualTo("http://cloudinary.com/img.jpg");
-            verify(petRepository).save(any(PetEntity.class));
+            verify(petRepository).save(any(PetModel.class));
         }
 
         @Test
@@ -231,9 +231,9 @@ class PetServiceTest {
             );
 
             when(petRepository.findById(id)).thenReturn(Optional.of(defaultPet));
-            when(petRepository.save(any(PetEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(petRepository.save(any(PetModel.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            PetEntity updated = petService.update(id, dto, "http://cloudinary.com/nova.jpg");
+            PetModel updated = petService.update(id, dto, "http://cloudinary.com/nova.jpg");
 
             assertThat(updated.getImageUrl()).isEqualTo("http://cloudinary.com/nova.jpg");
         }

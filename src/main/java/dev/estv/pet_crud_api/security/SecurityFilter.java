@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -24,8 +25,8 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         String path = request.getServletPath();
@@ -39,8 +40,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                 || path.startsWith("/swagger")
                 || path.startsWith("/v3/api-docs")
                 || (path.startsWith("/pets") && request.getMethod().equals("GET"))
-                || (path.equals("/pets/search") && request.getMethod().equals("POST"))
-        ) {
+                || (path.equals("/pets/search") && request.getMethod().equals("POST"))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -50,13 +50,17 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (token != null) {
             String email = tokenService.validateToken(token);
 
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            String userId = tokenService.validateToken(token);
 
-                UserDetails userDetails = customClientDetailsService.loadUserByUsername(email);
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                UserDetails userDetails = customClientDetailsService.loadUserById(UUID.fromString(userId));
 
                 if (userDetails != null) {
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities());
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }

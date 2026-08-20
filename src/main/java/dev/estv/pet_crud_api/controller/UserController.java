@@ -2,7 +2,7 @@ package dev.estv.pet_crud_api.controller;
 
 import dev.estv.pet_crud_api.dto.ApiResponse;
 import dev.estv.pet_crud_api.dto.UserDTOs;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("users")
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
@@ -38,14 +38,14 @@ public class UserController {
                 new ApiResponse<>(true, null, "User removed successfully"));
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserEntity>> update(@PathVariable(value = "id") UUID id,
-                                                          @RequestBody @Valid UserDTOs.UserUpdate dto) {
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserModel>> update(@PathVariable(value = "id") UUID id,
+                                                         @RequestBody @Valid UserDTOs.UserUpdate dto) {
         if (userService.findById(id) == null) {
             return ResponseEntity.status(404)
                     .body(new ApiResponse<>(false, null, "User not found"));
         }
-        UserEntity updatedUser = userService.update(id, dto);
+        UserModel updatedUser = userService.update(id, dto);
         updatedUser.setPassword(null);
         return ResponseEntity.status(200)
                 .body(new ApiResponse<>(true, updatedUser, "User updated succesfuly"));

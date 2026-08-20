@@ -1,8 +1,8 @@
 package dev.estv.pet_crud_api.util;
 
 import dev.estv.pet_crud_api.dto.PetDTOs;
-import dev.estv.pet_crud_api.entity.PetEntity;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.PetModel;
+import dev.estv.pet_crud_api.entity.UserModel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -14,12 +14,12 @@ public interface PetMapper {
     @Mapping(target = "gender", expression = "java(pet.getGender().name())")
     @Mapping(target = "owner", source = "owner")
     @Mapping(target = "imageUrl", source = "imageUrl")
-    PetDTOs.PetResponse toDTO(PetEntity pet);
+    PetDTOs.PetResponse toDTO(PetModel pet);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "name", source = "pet.name")
     @Mapping(target = "owner", source = "user")
     @Mapping(target = "type", expression = "java(PetModel.Type.fromString(pet.type()))")
     @Mapping(target = "gender", expression = "java(PetModel.Gender.fromString(pet.gender()))")
-    PetEntity toEntity(PetDTOs.PetRecord pet, UserEntity user);
+    PetModel toEntity(PetDTOs.PetRecord pet, UserModel user);
 }

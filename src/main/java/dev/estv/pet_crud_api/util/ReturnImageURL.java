@@ -1,29 +1,29 @@
 package dev.estv.pet_crud_api.util;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.Transformation;
-import com.cloudinary.utils.ObjectUtils;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
 import dev.estv.pet_crud_api.exception.exceptions.InvalidImageException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class ReturnImageURL {
 
-    private final Cloudinary cloudinary;
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-    public ReturnImageURL(Cloudinary cloudinary) {
-        this.cloudinary = cloudinary;
+    private final IMap<String, CachedImage> imageCache;
+
+    public ReturnImageURL(HazelcastInstance hazelcastInstance) {
+        this.imageCache = hazelcastInstance.getMap("petImages");
     }
 
     public String imageUrl(MultipartFile image) {
-
-        final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
         if (image.isEmpty() || image.getSize() > MAX_FILE_SIZE) {
             throw new InvalidImageException();
@@ -32,23 +32,25 @@ public class ReturnImageURL {
         try {
             BufferedImage bufferedImage = ImageIO.read(image.getInputStream());
 
+            if (bufferedImage == null) {
+                throw new InvalidImageException();
+            }
+
             if (bufferedImage.getWidth() > 4000 || bufferedImage.getHeight() > 4000) {
                 throw new InvalidImageException();
             }
 
-            Map params = ObjectUtils.asMap(
-                    "folder", "pets",
-                    "transformation", new Transformation()
-                            .width(800)
-                            .height(800)
-                            .crop("limit")
-                            .quality("auto")
-                            .fetchFormat("auto")
-            );
+            String id = UUID.randomUUID().toString();
+            String contentType = image.getContentType() != null
+                    ? image.getContentType()
+                    : "application/octet-stream";
 
-            Map uploadResult = cloudinary.uploader().upload(image.getBytes(), params);
+            imageCache.put(id, new CachedImage(image.getBytes(), contentType));
 
-            return uploadResult.get("secure_url").toString();
+            return ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/images/")
+                    .path(id)
+                    .toUriString();
 
         } catch (IOException e) {
             throw new RuntimeException("Error on send image");

@@ -2,7 +2,7 @@ package dev.estv.pet_crud_api.service;
 
 import dev.estv.pet_crud_api.dto.AuthDTOs;
 import dev.estv.pet_crud_api.dto.UserDTOs;
-import dev.estv.pet_crud_api.entity.UserEntity;
+import dev.estv.pet_crud_api.entity.UserModel;
 import dev.estv.pet_crud_api.repository.UserRepository;
 import dev.estv.pet_crud_api.util.UserMapper;
 import dev.estv.pet_crud_api.util.ValidationUtil;
@@ -50,14 +50,14 @@ class UserServiceTest {
         ReflectionTestUtils.setField(userService, "adminEmail", "admin@pets.com");
     }
 
-    private UserEntity buildUserModel(String name, String email) {
-        UserEntity user = new UserEntity();
+    private UserModel buildUserModel(String name, String email) {
+        UserModel user = new UserModel();
         user.setId(UUID.randomUUID());
         user.setName(name);
         user.setEmail(email);
         user.setPassword("encoded_password");
         user.setNumber("81900000000");
-        user.setRole(UserEntity.Role.ROLE_USER);
+        user.setRole(UserModel.Role.ROLE_USER);
         return user;
     }
 
@@ -72,14 +72,14 @@ class UserServiceTest {
                     "João Silva", "81900000000", "joao@email.com", "senha1234"
             );
             when(passwordEncoder.encode(dto.password())).thenReturn("encoded_password");
-            when(userRepository.save(any(UserEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(userRepository.save(any(UserModel.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            UserEntity saved = userService.save(dto);
+            UserModel saved = userService.save(dto);
 
-            assertThat(saved.getRole()).isEqualTo(UserEntity.Role.ROLE_USER);
+            assertThat(saved.getRole()).isEqualTo(UserModel.Role.ROLE_USER);
             assertThat(saved.getEmail()).isEqualTo("joao@email.com");
-            verify(validationUtil).validateUser(any(UserEntity.class));
-            verify(userRepository).save(any(UserEntity.class));
+            verify(validationUtil).validateUser(any(UserModel.class));
+            verify(userRepository).save(any(UserModel.class));
         }
 
         @Test
@@ -91,9 +91,9 @@ class UserServiceTest {
             when(passwordEncoder.encode(anyString())).thenReturn("encoded");
             when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            UserEntity saved = userService.save(dto);
+            UserModel saved = userService.save(dto);
 
-            assertThat(saved.getRole()).isEqualTo(UserEntity.Role.ROLE_ADMIN);
+            assertThat(saved.getRole()).isEqualTo(UserModel.Role.ROLE_ADMIN);
         }
 
         @Test
@@ -105,7 +105,7 @@ class UserServiceTest {
             when(passwordEncoder.encode("senha1234")).thenReturn("bcrypt_encoded");
             when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            UserEntity saved = userService.save(dto);
+            UserModel saved = userService.save(dto);
 
             assertThat(saved.getPassword()).isEqualTo("bcrypt_encoded");
         }
@@ -147,11 +147,11 @@ class UserServiceTest {
         @Test
         @DisplayName("findByEmail() deve retornar Optional com user quando existe")
         void shouldReturnUserWhenEmailExists() {
-            UserEntity user = buildUserModel("João Silva", "joao@email.com");
+            UserModel user = buildUserModel("João Silva", "joao@email.com");
             UserDTOs.UserRecord dto = new UserDTOs.UserRecord("João Silva", "81900000000", "joao@email.com", "senha1234");
             when(userRepository.findByUsermail("joao@email.com")).thenReturn(Optional.of(user));
 
-            Optional<UserEntity> result = userService.findByEmail(dto);
+            Optional<UserModel> result = userService.findByEmail(dto);
 
             assertThat(result).isPresent();
             assertThat(result.get().getEmail()).isEqualTo("joao@email.com");
@@ -163,7 +163,7 @@ class UserServiceTest {
             UserDTOs.UserRecord dto = new UserDTOs.UserRecord("João Silva", "81900000000", "naoexiste@email.com", "senha1234");
             when(userRepository.findByUsermail("naoexiste@email.com")).thenReturn(Optional.empty());
 
-            Optional<UserEntity> result = userService.findByEmail(dto);
+            Optional<UserModel> result = userService.findByEmail(dto);
 
             assertThat(result).isEmpty();
         }
@@ -171,11 +171,11 @@ class UserServiceTest {
         @Test
         @DisplayName("login() deve retornar usuário pelo email")
         void shouldReturnUserByEmail() {
-            UserEntity user = buildUserModel("João Silva", "joao@email.com");
+            UserModel user = buildUserModel("João Silva", "joao@email.com");
             AuthDTOs.LoginRequest dto = new AuthDTOs.LoginRequest("joao@email.com", "senha1234");
             when(userRepository.findByUsermail("joao@email.com")).thenReturn(Optional.of(user));
 
-            Optional<UserEntity> result = userService.login(dto);
+            Optional<UserModel> result = userService.login(dto);
 
             assertThat(result).isPresent();
         }
@@ -188,8 +188,8 @@ class UserServiceTest {
         @Test
         @DisplayName("Deve retornar lista de UserResponseDTO")
         void shouldReturnListOfUserDTOs() {
-            UserEntity user1 = buildUserModel("João Silva", "joao@email.com");
-            UserEntity user2 = buildUserModel("Maria Costa", "maria@email.com");
+            UserModel user1 = buildUserModel("João Silva", "joao@email.com");
+            UserModel user2 = buildUserModel("Maria Costa", "maria@email.com");
 
             UserDTOs.UserResponse dto1 = new UserDTOs.UserResponse(user1.getId().toString(), "João Silva", "81900000000", "joao@email.com", "ROLE_USER");
             UserDTOs.UserResponse dto2 = new UserDTOs.UserResponse(user2.getId().toString(), "Maria Costa", "81900000001", "maria@email.com", "ROLE_USER");

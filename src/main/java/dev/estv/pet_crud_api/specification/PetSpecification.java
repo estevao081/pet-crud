@@ -1,7 +1,7 @@
 package dev.estv.pet_crud_api.specification;
 
 import dev.estv.pet_crud_api.dto.PetDTOs;
-import dev.estv.pet_crud_api.entity.PetEntity;
+import dev.estv.pet_crud_api.entity.PetModel;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class PetSpecification {
 
-    public static Specification<PetEntity> filter(PetDTOs.PetResponse dto) {
+    public static Specification<PetModel> filter(PetDTOs.PetResponse dto) {
 
         return (root, query, cb) -> {
 
@@ -28,7 +28,7 @@ public class PetSpecification {
                 predicates.add(
                         cb.equal(
                                 root.get("type"),
-                                PetEntity.Type.fromString(dto.getType())
+                                PetModel.Type.fromString(dto.getType())
                         )
                 );
             }
@@ -37,7 +37,7 @@ public class PetSpecification {
                 predicates.add(
                         cb.equal(
                                 root.get("gender"),
-                                PetEntity.Gender.fromString(dto.getGender())
+                                PetModel.Gender.fromString(dto.getGender())
                         )
                 );
             }
