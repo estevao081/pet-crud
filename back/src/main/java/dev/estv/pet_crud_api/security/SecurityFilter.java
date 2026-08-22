@@ -48,7 +48,6 @@ public class SecurityFilter extends OncePerRequestFilter {
         String token = recoverToken(request);
 
         if (token != null) {
-            String email = tokenService.validateToken(token);
 
             String userId = tokenService.validateToken(token);
 
