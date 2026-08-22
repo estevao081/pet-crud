@@ -118,14 +118,14 @@ A aplicação sobe em produção como um `.jar` executado por uma imagem `eclips
 Além do `docker-compose.yml`, o repositório também traz uma **imagem única** que empacota frontend, backend e PostgreSQL no mesmo container, orquestrados internamente pelo [supervisord](http://supervisord.org/). Ideal para subir uma demo rápida com um único comando.
 
 **Como funciona:**
-- `Dockerfile.all-in-one` faz o build do frontend e do backend em estágios separados e monta a imagem final com Java (JRE), Nginx e PostgreSQL instalados.
+- `Dockerfile` faz o build do frontend e do backend em estágios separados e monta a imagem final com Java (JRE), Nginx e PostgreSQL instalados.
 - O Nginx serve o frontend estático na porta `80` e faz proxy reverso das rotas de API (`/auth`, `/pets`, `/users`, `/images`) para o backend, que roda internamente em `127.0.0.1:8080`.
 - O PostgreSQL também roda dentro do mesmo container, na porta `5432` (interna).
-- Na primeira execução, o script `docker/all-in-one/entrypoint.sh` inicializa o banco automaticamente (cria usuário, banco e roda o `init.sql`).
+- Na primeira execução, o script `entrypoint.sh` inicializa o banco automaticamente (cria usuário, banco e roda o `init.sql`).
 
 **1. Rodando com um único comando:**
 ```bash
-docker run -d -p 3000:80 --name pet-crud pet-crud-all-in-one
+docker run -d -p 3000:80 estvc4/pet-crud:1.0.0
 ```
 
 Acesse tudo em: **http://localhost:3000** (frontend e API, já que o Nginx faz o proxy interno).
