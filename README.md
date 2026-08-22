@@ -134,7 +134,7 @@ Acesse tudo em: **http://localhost:3000** (frontend e API, já que o Nginx faz o
 
 Sem volume, os dados do Postgres somem se o container for removido (`docker rm`). Para persistir entre execuções, monte um volume nomeado no caminho de dados do banco:
 ```bash
-docker run -d -p 3000:80 -v pet-crud-data:/var/lib/postgresql/data --name pet-crud pet-crud-all-in-one
+docker run -d -p 3000:80 -v pet-crud-data:/var/lib/postgresql/data --name pet-crud estvc4/pet-crud:1.0.0
 ```
 
 **3. Customizando variáveis de ambiente (opcional):**
