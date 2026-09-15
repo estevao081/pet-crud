@@ -17,7 +17,8 @@ public class UserDTOs {
             String email,
             @NotNull
             @NotBlank(message = "Password cannot be blank")
-            String password
+            String password,
+            String address
     ){}
 
     public record UserResponse (
@@ -25,7 +26,8 @@ public class UserDTOs {
             String name,
             String number,
             String email,
-            String role
+            String role,
+            String address
     ){}
 
     public record UserUpdate (
@@ -37,6 +39,7 @@ public class UserDTOs {
             String number,
             @NotNull
             @NotBlank(message = "E-mail cannot be blank")
-            String email
+            String email,
+            String address
     ){}
 }

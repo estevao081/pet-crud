@@ -37,6 +37,7 @@ public class UserService {
         newUser.setEmail(dto.email());
         newUser.setName(dto.name());
         newUser.setNumber(dto.number());
+        newUser.setAddress(dto.address());
 
         if (userRepository.count() == 0) {
             newUser.setRole(UserModel.Role.ROLE_ADMIN);
@@ -68,6 +69,7 @@ public class UserService {
         userModel.setName(dto.name());
         userModel.setNumber(dto.number());
         userModel.setEmail(dto.email());
+        userModel.setAddress(dto.address());
 
         validationUtil.validateUser(userModel);
         return userRepository.save(userModel);

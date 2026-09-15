@@ -22,6 +22,7 @@ const schema = z.object({
     .string()
     .trim()
     .regex(/^\d{10,11}$/, "Telefone deve conter 10 ou 11 dígitos"),
+  address: z.string().trim().max(200).optional(),
 });
 
 interface Props {
@@ -32,7 +33,7 @@ interface Props {
 
 export function UserEditDialog({ open, onOpenChange, user }: Props) {
   const qc = useQueryClient();
-  const [form, setForm] = useState({ name: "", email: "", number: "" });
+  const [form, setForm] = useState({ name: "", email: "", number: "", address: "" });
 
   useEffect(() => {
     if (user) {
@@ -40,6 +41,7 @@ export function UserEditDialog({ open, onOpenChange, user }: Props) {
         name: user.name ?? "",
         email: user.email ?? "",
         number: (user.number ?? "").replace(/\D/g, ""),
+        address: user.address ?? "",
       });
     }
   }, [user]);
@@ -102,6 +104,15 @@ export function UserEditDialog({ open, onOpenChange, user }: Props) {
                 setForm({ ...form, number: e.target.value.replace(/\D/g, "") })
               }
               maxLength={11}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="address">Endereço</Label>
+            <Input
+              id="address"
+              value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+              maxLength={200}
             />
           </div>
           <DialogFooter>

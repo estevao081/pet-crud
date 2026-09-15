@@ -1,10 +1,5 @@
 import { Pet } from "@/lib/api";
-import { Dog, Cat, MapPin, Scale, Calendar, Trash2, Pencil, User } from "lucide-react";
-
-function formatPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "").padEnd(11, "0");
-  return `(${digits.slice(0, 2)}) ${digits[2]}.${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
-}
+import { Dog, Cat, MapPin, Scale, Calendar, Trash2, Pencil, Heart, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -12,11 +7,12 @@ interface PetCardProps {
   pet: Pet;
   onEdit: (pet: Pet) => void;
   onDelete: (pet: Pet) => void;
+  onAdopt: (pet: Pet) => void;
   currentUserName?: string;
   isAdmin?: boolean;
 }
 
-export function PetCard({ pet, onEdit, onDelete, currentUserName, isAdmin }: PetCardProps) {
+export function PetCard({ pet, onEdit, onDelete, onAdopt, currentUserName, isAdmin }: PetCardProps) {
   const Icon = pet.type === "CAO" ? Dog : Cat;
   const typeLabel = pet.type === "CAO" ? "Cão" : "Gato";
   const genderLabel = pet.gender === "M" ? "Macho" : "Fêmea";
@@ -88,15 +84,18 @@ export function PetCard({ pet, onEdit, onDelete, currentUserName, isAdmin }: Pet
         Raça: <span className="font-medium text-foreground">{pet.race && pet.race.trim() ? pet.race : "não informado"}</span>
       </p>
 
-      {pet.owner && (
-        <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground border-t pt-3">
-          <User className="h-3.5 w-3.5 shrink-0" />
-          <div className="flex flex-col">
-            <span>Cadastrado por <strong className="text-foreground">{pet.owner.name}</strong></span>
-            <span>{formatPhone(String(pet.owner.number))}</span>
+      <div className="mt-3 border-t pt-3">
+        {isOwner ? (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <UserCheck className="h-3.5 w-3.5 shrink-0" />
+            <span>Este pet está cadastrado por você</span>
           </div>
-        </div>
-      )}
+        ) : (
+          <Button size="sm" className="w-full" onClick={() => onAdopt(pet)}>
+            <Heart className="h-4 w-4 mr-1.5" /> Adotar!
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

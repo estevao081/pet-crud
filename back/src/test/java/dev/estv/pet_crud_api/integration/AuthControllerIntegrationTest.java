@@ -49,7 +49,7 @@ class AuthControllerIntegrationTest {
         @DisplayName("Deve registrar novo usuário e retornar 201 com token")
         void shouldRegisterAndReturn201() throws Exception {
             UserDTOs.UserRecord dto = new UserDTOs.UserRecord(
-                    "João Silva", "81912345678", "joao@email.com", "senha1234"
+                    "João Silva", "81912345678", "joao@email.com", "senha1234", "Rua das Flores, 123"
             );
 
             mockMvc.perform(post("/auth/register")
@@ -66,7 +66,7 @@ class AuthControllerIntegrationTest {
         @DisplayName("Deve retornar 409 quando email já está em uso")
         void shouldReturn409WhenEmailAlreadyExists() throws Exception {
             UserDTOs.UserRecord dto = new UserDTOs.UserRecord(
-                    "João Silva", "81912345678", "joao@email.com", "senha1234"
+                    "João Silva", "81912345678", "joao@email.com", "senha1234", "Rua das Flores, 123"
             );
 
             // Primeiro registro
@@ -87,7 +87,7 @@ class AuthControllerIntegrationTest {
         @Test
         @DisplayName("Deve retornar 400 quando campos obrigatórios estão vazios")
         void shouldReturn400WhenRequiredFieldsMissing() throws Exception {
-            UserDTOs.UserRecord dto = new UserDTOs.UserRecord("", "", "", "");
+            UserDTOs.UserRecord dto = new UserDTOs.UserRecord("", "", "", "", "");
 
             mockMvc.perform(post("/auth/register")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -100,7 +100,7 @@ class AuthControllerIntegrationTest {
         @DisplayName("Deve retornar 400 para nome sem sobrenome")
         void shouldReturn400ForNameWithoutLastName() throws Exception {
             UserDTOs.UserRecord dto = new UserDTOs.UserRecord(
-                    "Joao", "81912345678", "joao@email.com", "senha1234"
+                    "Joao", "81912345678", "joao@email.com", "senha1234", "Rua das Flores, 123"
             );
 
             mockMvc.perform(post("/auth/register")

@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Pet, PetFormData } from "@/lib/api";
 import { usePets, useSearchPets, useSavePet, useUpdatePet, useDeletePet } from "@/hooks/use-pets";
+import { useRequestAdoption } from "@/hooks/use-adoption-requests";
 import { useAuth } from "@/contexts/AuthContext";
 import { PetCard } from "@/components/PetCard";
 import { SearchBar } from "@/components/SearchBar";
 import { PetDialog } from "@/components/PetDialog";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
+import { AdoptConfirmDialog } from "@/components/AdoptConfirmDialog";
+import { AdoptionNotifications } from "@/components/AdoptionNotifications";
 import { Button } from "@/components/ui/button";
 import { PawPrint, Plus, Loader2, LogIn, LogOut, UserPlus, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -21,6 +24,7 @@ export default function Index() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [deletingPet, setDeletingPet] = useState<Pet | null>(null);
+  const [adoptingPet, setAdoptingPet] = useState<Pet | null>(null);
 
   const saveMutation = useSavePet(() => setDialogOpen(false));
   const updateMutation = useUpdatePet(() => {
@@ -28,6 +32,7 @@ export default function Index() {
     setEditingPet(null);
   });
   const deleteMutation = useDeletePet();
+  const adoptMutation = useRequestAdoption(() => setAdoptingPet(null));
 
   const isSearching = !!searchFilter;
   const searchData = searchMutation.data?.data;
@@ -63,6 +68,20 @@ export default function Index() {
       deleteMutation.mutate(deletingPet.id, {
         onSuccess: () => setDeletingPet(null),
       });
+    }
+  };
+
+  const handleAdoptClick = (pet: Pet) => {
+    if (!isAuthenticated) {
+      toast.error("Faça login para solicitar a adoção de um pet.");
+      return;
+    }
+    setAdoptingPet(pet);
+  };
+
+  const handleAdoptConfirm = () => {
+    if (adoptingPet) {
+      adoptMutation.mutate(adoptingPet.id);
     }
   };
 
@@ -113,6 +132,7 @@ export default function Index() {
                     </Link>
                   </Button>
                 )}
+                <AdoptionNotifications enabled={isAuthenticated} />
                 <Button variant="outline" size="icon" onClick={logout} title="Sair" className="h-9 w-9 sm:h-10 sm:w-10">
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -174,6 +194,7 @@ export default function Index() {
                   pet={pet}
                   onEdit={handleEdit}
                   onDelete={setDeletingPet}
+                  onAdopt={handleAdoptClick}
                   currentUserName={user?.name}
                   isAdmin={user?.role === "ROLE_ADMIN"}
                 />
@@ -224,6 +245,14 @@ export default function Index() {
         pet={deletingPet}
         onConfirm={handleDeleteConfirm}
         isPending={deleteMutation.isPending}
+      />
+
+      <AdoptConfirmDialog
+        open={!!adoptingPet}
+        onOpenChange={(open) => !open && setAdoptingPet(null)}
+        pet={adoptingPet}
+        onConfirm={handleAdoptConfirm}
+        isPending={adoptMutation.isPending}
       />
     </div>
   );
