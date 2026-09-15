@@ -156,7 +156,7 @@ class UserControllerIntegrationTest {
         @DisplayName("Deve atualizar usuário com dados válidos")
         void shouldUpdateUserWithValidData() throws Exception {
             UserDTOs.UserUpdate dto = new UserDTOs.UserUpdate(
-                    "João Atualizado", "81999999999", "joao@email.com"
+                    "João Atualizado", "81999999999", "joao@email.com", "Rua Nova, 456"
             );
 
             mockMvc.perform(put("/users/" + regularUser.getId())
@@ -173,7 +173,7 @@ class UserControllerIntegrationTest {
         void shouldReturn404ForNonExistentUser() throws Exception {
             UUID randomId = UUID.randomUUID();
             UserDTOs.UserUpdate dto = new UserDTOs.UserUpdate(
-                    "João Atualizado", "81999999999", "joao@email.com"
+                    "João Atualizado", "81999999999", "joao@email.com", "Rua Nova, 456"
             );
 
             mockMvc.perform(put("/users/" + randomId)
@@ -188,7 +188,7 @@ class UserControllerIntegrationTest {
         @DisplayName("Deve retornar 403 ao atualizar sem autenticação")
         void shouldReturn403WhenUnauthenticated() throws Exception {
             UserDTOs.UserUpdate dto = new UserDTOs.UserUpdate(
-                    "João Atualizado", "81999999999", "joao@email.com"
+                    "João Atualizado", "81999999999", "joao@email.com", "Rua Nova, 456"
             );
 
             mockMvc.perform(put("/users/" + regularUser.getId())
