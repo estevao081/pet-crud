@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  application:
+    name: pet-service
+
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/pet_db}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    generate-ddl: true
+    show-sql: false
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+
+services:
+  user:
+    url: ${USER_SERVICE_URL:http://localhost:8082}
+
+app:
+  # URL pública do gateway, usada para montar o link das imagens
+  public-base-url: ${PUBLIC_BASE_URL:http://localhost:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

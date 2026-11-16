@@ -1,0 +1,20 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: auth-service
+
+services:
+  user:
+    url: ${USER_SERVICE_URL:http://localhost:8082}
+
+jwt:
+  secret: ${SECRET_KEY}
+  expiration-hours: ${JWT_EXPIRATION_HOURS:2}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

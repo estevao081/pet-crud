@@ -1,3 +1,4 @@
 FROM postgres:15-alpine
 
-COPY ./init.sql /docker-entrypoint-initdb.d/
+# Cria um banco por microserviço (user_db e pet_db) na primeira inicialização
+COPY ./db/init-databases.sh /docker-entrypoint-initdb.d/
