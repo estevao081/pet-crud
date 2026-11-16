@@ -1,48 +1,118 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
+  # PostgreSQL: uma instância, um BANCO por serviço (user_db e pet_db)
   postgres:
     image: postgres:15-alpine
     container_name: pet_crud-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      USER_DB: ${USER_DB}
+      PET_DB: ${PET_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Backend API
-  backend:
+  # user-service: dono da tabela users. Sem "ports": só alcançável pela rede interna.
+  user-service:
     build:
-      context: ./back
-      dockerfile: Dockerfile
-    container_name: pet_crud-backend
+      context: ./back/user-service
+    container_name: pet_crud-user-service
     environment:
-      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${USER_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SECRET_KEY: ${SECRET_KEY:-mySecretKey123}
-    ports:
-      - "8080:8080"
+      PET_SERVICE_URL: http://pet-service:8083
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
-  # Frontend
+  # pet-service: dono da tabela pets e das imagens.
+  pet-service:
+    build:
+      context: ./back/pet-service
+    container_name: pet_crud-pet-service
+    environment:
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${PET_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      USER_SERVICE_URL: http://user-service:8082
+      # URL pública do gateway, usada para montar o link das imagens
+      PUBLIC_BASE_URL: http://localhost:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  # auth-service: stateless (sem banco). Emite JWT e consulta o user-service.
+  auth-service:
+    build:
+      context: ./back/auth-service
+    container_name: pet_crud-auth-service
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-mySecretKey123}
+      USER_SERVICE_URL: http://user-service:8082
+    depends_on:
+      user-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  # gateway: ÚNICA porta de entrada da API (mesma 8080 que o monólito usava).
+  gateway:
+    build:
+      context: ./back/gateway
+    container_name: pet_crud-gateway
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-mySecretKey123}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      USER_SERVICE_URL: http://user-service:8082
+      PET_SERVICE_URL: http://pet-service:8083
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      pet-service:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # Frontend (inalterado): continua apontando para http://localhost:8080
   frontend:
     build:
       context: ./front
@@ -51,7 +121,7 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      - gateway
     networks:
       - app-network
 

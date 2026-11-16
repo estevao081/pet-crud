@@ -7,20 +7,6 @@ export interface PetOwner {
   number: number;
 }
 
-export interface AdoptionRequest {
-  id: string;
-  petId: string;
-  petName: string;
-  petImageUrl?: string;
-  requesterId: string;
-  requesterName: string;
-  requesterPhone: string;
-  requesterAddress: string;
-  status: "PENDING" | "ACCEPTED" | "REJECTED";
-  createdAt: string;
-  respondedAt?: string;
-}
-
 export interface Pet {
   id: string;
   name: string;
@@ -41,7 +27,6 @@ export interface User {
   number: string;
   email: string;
   role: "ROLE_USER" | "ROLE_ADMIN";
-  address?: string;
 }
 
 export interface PetFormData {
@@ -242,7 +227,6 @@ export interface UserUpdateData {
   name: string;
   email: string;
   number: string;
-  address?: string;
 }
 
 export const userApi = {
@@ -261,25 +245,5 @@ export const userApi = {
   delete: (id: string) =>
     request<null>(`/users/${id}`, {
       method: "DELETE",
-    }),
-};
-
-export const adoptionApi = {
-  request: (petId: string) =>
-    request<AdoptionRequest>(`/pets/${petId}/adoption-requests`, {
-      method: "POST",
-    }),
-
-  listMyNotifications: () =>
-    request<AdoptionRequest[]>("/adoption-requests"),
-
-  accept: (id: string) =>
-    request<AdoptionRequest>(`/adoption-requests/${id}/accept`, {
-      method: "PATCH",
-    }),
-
-  reject: (id: string) =>
-    request<AdoptionRequest>(`/adoption-requests/${id}/reject`, {
-      method: "PATCH",
     }),
 };

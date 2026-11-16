@@ -14,14 +14,13 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [number, setNumber] = useState("");
-  const [address, setAddress] = useState("");
   const [isPending, setIsPending] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsPending(true);
     try {
-      await register({ name, email, password, number, address });
+      await register({ name, email, password, number });
       toast.success("Conta criada com sucesso!");
       navigate("/");
     } catch (err: any) {
@@ -87,19 +86,6 @@ export default function RegisterPage() {
               onChange={(e) => setNumber(e.target.value)}
               required
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="address">Endereço</Label>
-            <Input
-              id="address"
-              placeholder="Rua, número, bairro, cidade"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Usado para informar quem solicita a adoção dos seus pets.
-            </p>
           </div>
           <Button type="submit" disabled={isPending} className="w-full">
             {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}

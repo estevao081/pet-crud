@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hazelcast xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-5.7.xsd">
+
+    <!-- Adicione um nome exclusivo aqui para ele não tentar se juntar ao cluster "dev" da versão 5.5 -->
+    <cluster-name>pet-crud-cluster</cluster-name>
+
+    <map name="petImages">
+        <backup-count>0</backup-count>
+        <eviction eviction-policy="LRU" max-size-policy="PER_NODE" size="500"/>
+    </map>
+</hazelcast>

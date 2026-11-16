@@ -1,12 +1,12 @@
 # 🐾 Pet Crud (AdotaPet)
 
-Sistema web CRUD para gerenciamento e adoção de pets, desenvolvido como projeto de estudo. A aplicação é dividida em **frontend** (React) e **backend** (Spring Boot), com **PostgreSQL** como banco de dados, e tudo pronto para rodar via **Docker**. Utilizo este projeto para aplicar conceitos e tecnologias que venho estudando.
+Sistema web CRUD para gerenciamento e adoção de pets, desenvolvido como projeto de estudo. A aplicação é dividida em **frontend** (React) e **backend em microserviços** (Spring Boot: gateway, auth, user e pet), com **PostgreSQL** como banco de dados, e tudo pronto para rodar via **Docker**. Utilizo este projeto para aplicar conceitos e tecnologias que venho estudando.
 
 ## 📑 Sumário
 
 - [Visão geral](#-visão-geral)
 - [Frontend](#-frontend)
-- [Backend](#-backend)
+- [Backend (microserviços)](#-backend-microserviços)
 - [Banco de dados](#-banco-de-dados)
 - [Como rodar com Docker](#-como-rodar-com-docker)
 - [Variáveis de ambiente](#-variáveis-de-ambiente)
@@ -36,30 +36,41 @@ Aplicação **React + TypeScript**, criada com **Vite** e estilizada com **Tailw
 
 Em produção, o frontend é compilado (`npm run build`) e servido como arquivos estáticos por um **Nginx**, que também trata o roteamento client-side (SPA) redirecionando todas as rotas para `index.html`.
 
-## ⚙️ Backend
+## ⚙️ Backend (microserviços)
 
-API REST em **Java 21 + Spring Boot 3**, construída com **Maven**.
+O backend (antes um monólito) foi dividido em **4 serviços** Spring Boot (Java 21, Maven), cada um em sua pasta dentro de `back/`:
 
-**Principais tecnologias e recursos:**
-- Spring Web (REST API) e Spring Data JPA (persistência)
-- Spring Security + JWT (`java-jwt` / `jjwt`) para autenticação e autorização
-- Bean Validation (Spring Validation)
-- MapStruct + Lombok (redução de boilerplate, mapeamento de DTOs)
-- Bucket4j + Hazelcast (rate limiting e cache distribuído)
-- Driver PostgreSQL para persistência em banco relacional
+| Serviço | Porta | Responsabilidade | Banco |
+|---|---|---|---|
+| `gateway` | 8080 (única exposta) | Ponto de entrada: roteamento, CORS, rate limit e validação do JWT | – |
+| `auth-service` | 8081 | Login, registro e emissão do JWT | – (stateless) |
+| `user-service` | 8082 | Dados de usuários e papéis | `user_db` |
+| `pet-service` | 8083 | CRUD/busca de pets e imagens | `pet_db` |
 
-**Principais endpoints:**
-- `/auth/login`, `/auth/register` – autenticação de usuários
-- `/pets` – CRUD de pets (criação com upload de imagem, listagem, busca, atualização e remoção)
-- `/pets/search` – busca de pets com filtros
-- `/images/{id}` – recuperação de imagens de pets
-- `/users`, `/users/{id}` – gerenciamento de usuários (admin)
+```mermaid
+flowchart LR
+    FE[Frontend :3000] -->|HTTP| GW[gateway :8080]
+    GW -->|/auth/**| AUTH[auth-service]
+    GW -->|/users/**| USER[user-service]
+    GW -->|/pets/** /images/**| PET[pet-service]
+    AUTH -->|/internal| USER
+    PET -->|/internal| USER
+    USER -->|/internal| PET
+    USER --- UDB[(user_db)]
+    PET --- PDB[(pet_db)]
+```
 
-A aplicação sobe em produção como um `.jar` executado por uma imagem `eclipse-temurin` (JRE), com build feito em múltiplos estágios (multi-stage build) usando Maven.
+Os endpoints públicos continuam **os mesmos** (`/auth/*`, `/pets`, `/pets/search`, `/images/{id}`, `/users/*`) e o frontend segue apontando para `http://localhost:8080`, que agora é o gateway.
+
+📖 **Detalhes de cada mudança e o porquê das decisões: [`docs/MICROSERVICES.md`](./docs/MICROSERVICES.md)**
+
+**Principais tecnologias:** Spring Web / WebFlux (gateway), Spring Cloud Gateway, Spring Data JPA, Spring Security (autorização por headers), JWT (`java-jwt`), Bucket4j (rate limit), Hazelcast (cache de imagens), MapStruct + Lombok.
+
+**Testes:** `cd back/<serviço> && mvn test`.
 
 ## 🗄️ Banco de dados
 
-**PostgreSQL 15**, provisionado via Docker (imagem `postgres:15-alpine`), com dados persistidos em um volume Docker (`postgres_data`) e um script de inicialização (`init.sql`) executado automaticamente na primeira subida do container.
+**PostgreSQL 15** (`postgres:15-alpine`), uma única instância com **um banco por serviço** (`user_db` e `pet_db`), criados na primeira subida por `db/init-databases.sh`. Os dados ficam no volume `postgres_data`. Nenhum serviço acessa o banco do outro: a comunicação entre eles é via API interna (`/internal/**`).
 
 ## 🐳 Como rodar com Docker
 
@@ -85,18 +96,22 @@ A aplicação sobe em produção como um `.jar` executado por uma imagem `eclips
    ```
 
    Esse comando vai:
-   - Buildar a imagem do **backend** (Maven → JAR → JRE Alpine)
+   - Buildar uma imagem para cada microserviço (Maven → JAR → JRE Alpine)
    - Buildar a imagem do **frontend** (Node → build estático → Nginx)
-   - Subir o **PostgreSQL**, aguardando o healthcheck do banco antes de iniciar o backend
-   - Conectar os três serviços em uma rede Docker interna (`app-network`)
+   - Subir o **PostgreSQL** e, em ordem de healthcheck, `user-service` / `pet-service` → `auth-service` → `gateway`
+   - Conectar tudo em uma rede Docker interna (`app-network`)
 
 4. **Acesse a aplicação**
 
    | Serviço     | URL                    |
    |-------------|------------------------|
    | Frontend    | http://localhost:3000  |
-   | Backend API | http://localhost:8080  |
+   | API (gateway) | http://localhost:8080 |
    | PostgreSQL  | localhost:5432         |
+
+   > `auth-service`, `user-service` e `pet-service` **não** publicam portas no host de propósito: só o gateway é alcançável de fora.
+
+   > ⚠️ **Já tinha rodado a versão monolítica?** O volume `postgres_data` antigo não terá os bancos novos. Rode `docker compose down -v` (apaga os dados) ou veja a seção de migração em [`docs/MICROSERVICES.md`](./docs/MICROSERVICES.md#migração-dos-dados-existentes).
 
 5. **Rodar em segundo plano (opcional)**
    ```bash
@@ -113,15 +128,15 @@ A aplicação sobe em produção como um `.jar` executado por uma imagem `eclips
    docker compose down -v
    ```
 
-### Opção B: imagem única (frontend + backend + banco em um só `docker run`)
+### Opção B: imagem única (frontend + 4 microserviços + banco em um só `docker run`)
 
-Além do `docker-compose.yml`, o repositório também traz uma **imagem única** que empacota frontend, backend e PostgreSQL no mesmo container, orquestrados internamente pelo [supervisord](http://supervisord.org/). Ideal para subir uma demo rápida com um único comando.
+Além do `docker-compose.yml`, o repositório também traz uma **imagem única** que empacota frontend, os quatro microserviços e PostgreSQL no mesmo container (4 JVMs + Postgres: prefira dar ao menos 2 GB de RAM ao Docker), orquestrados internamente pelo [supervisord](http://supervisord.org/). Ideal para subir uma demo rápida com um único comando.
 
 **Como funciona:**
-- `Dockerfile` faz o build do frontend e do backend em estágios separados e monta a imagem final com Java (JRE), Nginx e PostgreSQL instalados.
-- O Nginx serve o frontend estático na porta `80` e faz proxy reverso das rotas de API (`/auth`, `/pets`, `/users`, `/images`) para o backend, que roda internamente em `127.0.0.1:8080`.
+- `Dockerfile` faz o build do frontend e dos quatro serviços e monta a imagem final com Java (JRE), Nginx e PostgreSQL instalados.
+- O Nginx serve o frontend estático na porta `80` e faz proxy reverso das rotas de API (`/auth`, `/pets`, `/users`, `/images`) para o **gateway**, em `127.0.0.1:8080`; o gateway roteia para os demais serviços (8081–8083) dentro do container.
 - O PostgreSQL também roda dentro do mesmo container, na porta `5432` (interna).
-- Na primeira execução, o script `entrypoint.sh` inicializa o banco automaticamente (cria usuário, banco e roda o `init.sql`).
+- Na primeira execução, o script `entrypoint.sh` inicializa o banco automaticamente (cria o usuário e os bancos `user_db` e `pet_db`).
 
 **1. Rodando com um único comando:**
 ```bash
@@ -140,7 +155,6 @@ docker run -d -p 3000:80 -v pet-crud-data:/var/lib/postgresql/data --name pet-cr
 **3. Customizando variáveis de ambiente (opcional):**
 ```bash
 docker run -d -p 3000:80 \
-  -e POSTGRES_DB=pet_crud \
   -e POSTGRES_USER=meuuser \
   -e POSTGRES_PASSWORD=minhasenha \
   -e SECRET_KEY=umaChaveSecretaForte \
@@ -152,10 +166,10 @@ docker run -d -p 3000:80 \
 ### Rodando os serviços individualmente (sem compose)
 
 ```bash
-# Backend
-cd back
-docker build -t pet-crud-backend .
-docker run -p 8080:8080 --env-file ../.env pet-crud-backend
+# Cada microserviço tem seu Dockerfile. Exemplo com o user-service:
+cd back/user-service
+docker build -t pet-crud-user-service .
+docker run -p 8082:8082 -e POSTGRES_URL=... -e POSTGRES_USER=... -e POSTGRES_PASSWORD=... pet-crud-user-service
 
 # Frontend
 cd front
@@ -163,19 +177,21 @@ docker build -t pet-crud-frontend .
 docker run -p 3000:80 pet-crud-frontend
 ```
 
-> Nesse caso, você precisará garantir manualmente a rede/URL do PostgreSQL e do backend, já que o Docker Compose cuida disso automaticamente através do `app-network`.
+> Nesse caso, você precisará garantir manualmente a rede, as URLs dos serviços (`USER_SERVICE_URL`, `PET_SERVICE_URL`, `AUTH_SERVICE_URL`) e o PostgreSQL, já que o Docker Compose cuida disso automaticamente através do `app-network`. Para desenvolvimento local sem Docker, cada serviço tem defaults em `application.yml` (`localhost:8081` a `8083`).
 
 ## 🔐 Variáveis de ambiente
 
 **Raiz do projeto (`.env`)** – usado pelo `docker-compose.yml`:
 
-| Variável           | Descrição                                     |
-|--------------------|------------------------------------------------|
-| `POSTGRES_DB`      | Nome do banco de dados                         |
-| `POSTGRES_USER`    | Usuário do banco                               |
-| `POSTGRES_PASSWORD`| Senha do banco                                 |
-| `POSTGRES_URL`     | URL JDBC de conexão com o PostgreSQL           |
-| `SECRET_KEY`       | Chave secreta usada para assinar os tokens JWT |
+| Variável           | Descrição                                                              |
+|--------------------|-------------------------------------------------------------------------|
+| `POSTGRES_USER`    | Usuário do banco                                                        |
+| `POSTGRES_PASSWORD`| Senha do banco                                                          |
+| `USER_DB`          | Nome do banco do `user-service`                                         |
+| `PET_DB`           | Nome do banco do `pet-service`                                          |
+| `SECRET_KEY`       | Segredo do JWT: assinado pelo `auth-service`, verificado pelo `gateway` |
+
+**Variáveis por serviço** (definidas no `docker-compose.yml`): `POSTGRES_URL` (user/pet), `USER_SERVICE_URL`, `PET_SERVICE_URL`, `AUTH_SERVICE_URL`, `PUBLIC_BASE_URL` (pet-service: URL pública do gateway usada nos links de imagem), `CORS_ALLOWED_ORIGINS`, `RATE_LIMIT_CAPACITY` e `RATE_LIMIT_PERIOD_SECONDS` (gateway).
 
 **Frontend (`front/.env`)**:
 
@@ -190,23 +206,20 @@ docker run -p 3000:80 pet-crud-frontend
 
 ```
 pet-crud/
-├── back/                  # Backend (Spring Boot)
-│   ├── src/main/java/...  # Código-fonte (controllers, services, entities, security, etc.)
-│   ├── pom.xml
-│   └── Dockerfile
-├── front/                 # Frontend (React + Vite)
-│   ├── src/                # Páginas, componentes, hooks, contexts
-│   ├── nginx.conf
-│   └── Dockerfile
-├── docker/
-│   └── all-in-one/          # Suporte à imagem única
-│       ├── entrypoint.sh    # Inicializa o Postgres e sobe o supervisord
-│       ├── supervisord.conf # Orquestra postgres + backend + nginx no mesmo container
-│       └── nginx.conf       # Serve o frontend e faz proxy da API para o backend
-├── docker-compose.yml       # Orquestração dos 3 serviços (recomendado)
-├── Dockerfile.all-in-one    # Imagem única: frontend + backend + Postgres
-├── Dockerfile.postgres      # Dockerfile alternativo para o Postgres com init.sql
-├── init.sql                 # Script de inicialização do banco
+├── back/                    # Backend: um projeto Maven independente por microserviço
+│   ├── gateway/             # Spring Cloud Gateway (roteamento, CORS, rate limit, JWT)
+│   ├── auth-service/        # Login/registro e emissão de JWT
+│   ├── user-service/        # Usuários (user_db) + API interna
+│   └── pet-service/         # Pets e imagens (pet_db) + API interna
+├── front/                   # Frontend (React + Vite)
+├── db/
+│   └── init-databases.sh    # Cria user_db e pet_db na primeira subida do Postgres
+├── docs/
+│   └── MICROSERVICES.md     # Decisões de arquitetura e o porquê de cada mudança
+├── docker-compose.yml       # Orquestração (recomendado)
+├── Dockerfile               # Imagem única: frontend + 4 microserviços + Postgres
+├── Dockerfile.postgres      # Postgres com o script de criação dos bancos
+├── entrypoint.sh / supervisord.conf / nginx.conf   # Suporte à imagem única
 └── .env                     # Variáveis de ambiente (exemplo)
 ```
 

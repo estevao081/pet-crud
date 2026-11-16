@@ -23,8 +23,9 @@ if [ ! -f "${PGDATA}/PG_VERSION" ]; then
   done
 
   su postgres -c "psql --command \"CREATE USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';\""
-  su postgres -c "createdb -O ${POSTGRES_USER} ${POSTGRES_DB}"
-  su postgres -c "psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /docker-entrypoint-initdb.d/init.sql"
+  # Um banco por microservico
+  su postgres -c "createdb -O ${POSTGRES_USER} ${USER_DB}"
+  su postgres -c "createdb -O ${POSTGRES_USER} ${PET_DB}"
 
   su postgres -c "${PG_BIN}/pg_ctl -D ${PGDATA} stop"
 
@@ -33,6 +34,6 @@ else
   echo ">> [entrypoint] Dados do PostgreSQL ja existentes, pulando inicializacao."
 fi
 
-# A partir daqui, o supervisord assume o controle dos 3 processos:
-# postgres, backend (java) e nginx (frontend)
+# A partir daqui, o supervisord assume o controle dos processos:
+# postgres, os 4 microservicos (java) e nginx (frontend)
 exec /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf

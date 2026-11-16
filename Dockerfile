@@ -1,11 +1,18 @@
-# Pet Crud - imagem unica (frontend + backend + PostgreSQL). Permite rodar toda a aplicacao com um unico `docker run`.
+# Pet Crud - imagem unica (frontend + 4 microservicos + PostgreSQL). Permite rodar toda a aplicacao com um unico `docker run`.
 
 FROM maven:3.9.9-eclipse-temurin-21 AS backend-builder
-WORKDIR /app
-COPY back/pom.xml .
-RUN mvn dependency:go-offline
-COPY back/src ./src
-RUN mvn clean package -DskipTests
+WORKDIR /services
+# Um layer de dependências por serviço (cache), depois o código-fonte
+COPY back/gateway/pom.xml gateway/pom.xml
+COPY back/auth-service/pom.xml auth-service/pom.xml
+COPY back/user-service/pom.xml user-service/pom.xml
+COPY back/pet-service/pom.xml pet-service/pom.xml
+RUN for s in gateway auth-service user-service pet-service; do (cd $s && mvn -B dependency:go-offline) || exit 1; done
+COPY back/gateway/src gateway/src
+COPY back/auth-service/src auth-service/src
+COPY back/user-service/src user-service/src
+COPY back/pet-service/src pet-service/src
+RUN for s in gateway auth-service user-service pet-service; do (cd $s && mvn -B clean package -DskipTests) || exit 1; done
 
 FROM node:18-alpine AS frontend-builder
 WORKDIR /app
@@ -20,12 +27,13 @@ RUN npm run build
 FROM eclipse-temurin:21-jre-jammy
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    POSTGRES_DB=pet_crud \
     POSTGRES_USER=meuuser \
     POSTGRES_PASSWORD=minhasenha \
-    POSTGRES_URL=jdbc:postgresql://127.0.0.1:5432/pet_crud \
+    USER_DB=user_db \
+    PET_DB=pet_db \
     SPRING_JPA_HIBERNATE_DDL_AUTO=update \
     SECRET_KEY=mySecretKey123 \
+    PUBLIC_BASE_URL= \
     PG_VERSION=15
 
 RUN apt-get update && \
@@ -45,13 +53,14 @@ RUN apt-get update && \
     # /var/lib/postgresql/data, permitindo o uso de volume nesse caminho.
     pg_dropcluster --stop ${PG_VERSION} main || true
 
-COPY --from=backend-builder /app/target/pet-crud-api-0.0.1-SNAPSHOT.jar /app/backend.jar
+COPY --from=backend-builder /services/gateway/target/gateway.jar /app/gateway.jar
+COPY --from=backend-builder /services/auth-service/target/auth-service.jar /app/auth-service.jar
+COPY --from=backend-builder /services/user-service/target/user-service.jar /app/user-service.jar
+COPY --from=backend-builder /services/pet-service/target/pet-service.jar /app/pet-service.jar
 
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY --from=frontend-builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-COPY init.sql /docker-entrypoint-initdb.d/init.sql
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /entrypoint.sh
